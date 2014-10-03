@@ -243,6 +243,10 @@ module HammerCLI
         opt.long_switch.gsub(/^--/, '').gsub('-', '_')
       end
 
+      def option_switch(name)
+        "--" + name.gsub('_', '-')
+      end
+
       def option_value(opt)
         options[opt.read_method].to_s
       end
@@ -280,8 +284,14 @@ module HammerCLI
         answer_file.close
 
         if new_content != content
-          puts YAML::parse(content)
+          interative_options = YAML::load(File.open(file_path))
+          interative_options.each do |key, value|
+            opt = find_option(option_switch(key))
+            opt.of(self).take(value) if value
+          end
         end
+
+        puts options.keys
 
       end
 
