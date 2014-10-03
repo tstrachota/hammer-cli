@@ -51,6 +51,7 @@ module HammerCLI
       context[:adapter] = :csv
     end
 
+
   end
 
 end

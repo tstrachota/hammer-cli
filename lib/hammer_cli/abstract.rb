@@ -28,6 +28,7 @@ module HammerCLI
 
     def parse(arguments)
       super
+      get_interactive_params
       validate_options
       safe_options = options.dup
       safe_options.keys.each { |k| safe_options[k] = '***' if k.end_with?('password') }
@@ -235,5 +236,56 @@ module HammerCLI
     def options
       all_options.reject {|key, value| value.nil? }
     end
+
+    def get_interactive_params
+
+      def option_name2(opt)
+        opt.long_switch.gsub(/^--/, '').gsub('-', '_')
+      end
+
+      def option_value(opt)
+        options[opt.read_method].to_s
+      end
+
+      if !self.class.has_subcommands?
+
+        content = ""
+
+        self.class.recognised_options.each do |opt|
+          line = option_name2(opt) + ': '
+          value = option_value(opt)
+          line << value + " " unless value.empty?
+
+          padding = " " * line.length
+
+          description = ""
+          description << padding + "# " + opt.description.strip + "\n" unless opt.description.strip.empty?
+          description << padding + "# " + opt.format_description.strip + "\n" unless opt.format_description.strip.empty?
+
+
+          line << description.strip unless description.empty?
+          content << line + "\n"
+        end
+
+        file_path = "/tmp/answers.yml"
+        answer_file = File.open(file_path, 'w')
+        answer_file.write(content)
+        answer_file.close
+
+        #exec("vim #{file_path}")
+        ask(_("Procceed? "))
+
+        answer_file = File.open(file_path, 'r')
+        new_content = answer_file.read
+        answer_file.close
+
+        if new_content != content
+          puts YAML::parse(content)
+        end
+
+      end
+
+    end
+
   end
 end
