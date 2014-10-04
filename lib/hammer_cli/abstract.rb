@@ -254,8 +254,11 @@ module HammerCLI
       if !self.class.has_subcommands?
 
         content = ""
+        last_group = nil
 
         self.class.recognised_options.each do |opt|
+          next unless opt.interactive
+
           line = option_name2(opt) + ': '
           value = option_value(opt)
           line << value + " " unless value.empty?
@@ -266,10 +269,17 @@ module HammerCLI
           description << padding + "# " + opt.description.strip + "\n" unless opt.description.strip.empty?
           description << padding + "# " + opt.format_description.strip + "\n" unless opt.format_description.strip.empty?
 
+          if last_group != opt.group
+            content << "\n" unless content.empty?
+            content << "## #{opt.group} ##\n" unless opt.group.nil?
+          end
+          last_group = opt.group
 
           line << description.strip unless description.empty?
           content << line + "\n"
         end
+
+        #TODO: check whether any option has been set to interactive
 
         file_path = "/tmp/answers.yml"
         answer_file = File.open(file_path, 'w')
@@ -277,7 +287,7 @@ module HammerCLI
         answer_file.close
 
         #exec("vim #{file_path}")
-        ask(_("Procceed? "))
+        ask(_("Proceed? "))
 
         answer_file = File.open(file_path, 'r')
         new_content = answer_file.read
@@ -290,8 +300,6 @@ module HammerCLI
             opt.of(self).take(value) if value
           end
         end
-
-        puts options.keys
 
       end
 

@@ -20,10 +20,14 @@ module HammerCLI
 
       attr_accessor :value_formatter
       attr_accessor :context_target
+      attr_accessor :group
+      attr_accessor :interactive
 
       def initialize(switches, type, description, options = {})
         self.value_formatter = options.delete(:format)
         self.context_target = options.delete(:context_target)
+        self.group = options.delete(:group)
+        self.interactive = options.delete(:interactive)
         super
       end
 
