@@ -64,6 +64,7 @@ module HammerCLI::Apipie
       elsif param.expected_type == 'boolean' || param.validator =~ /Boolean/i
         opts[:format] = HammerCLI::Options::Normalizers::Bool.new
       end
+      opts[:interactive] = true
       opts[:attribute_name] = HammerCLI.option_accessor_name(param.name)
       return opts
     end

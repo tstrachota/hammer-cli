@@ -286,8 +286,7 @@ module HammerCLI
         answer_file.write(content)
         answer_file.close
 
-        #exec("vim #{file_path}")
-        ask(_("Proceed? "))
+        system("vim #{file_path}")
 
         answer_file = File.open(file_path, 'r')
         new_content = answer_file.read
