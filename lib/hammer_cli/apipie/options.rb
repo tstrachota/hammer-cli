@@ -1,14 +1,13 @@
-
 module HammerCLI::Apipie
   module Options
 
     def method_options(options)
-      method_options_for_params(resource.action(action).params, options)
+      defaults = add_default_options(resource.action(action).params, options)
+      method_options_for_params(resource.action(action).params, options.merge(defaults))
     end
 
     def method_options_for_params(params, options)
       opts = {}
-
       params.each do |p|
         if p.expected_type == :hash
           opts[p.name] = method_options_for_params(p.params, options)
@@ -32,6 +31,19 @@ module HammerCLI::Apipie
       else
         nil
       end
+    end
+
+    def add_default_options(options, explicit_options)
+      defaults = {}
+      options.each do |option|
+        option = option.name.to_s
+        value = HammerCLI::Defaults.get_defaults(option) unless explicit_options["option_"+option]
+        if value
+          defaults["option_" + option] = value
+          logger.info("You are using the following default parameter:  #{option} = #{value}")
+        end
+      end
+      defaults
     end
 
   end

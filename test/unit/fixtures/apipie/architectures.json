@@ -142,6 +142,15 @@
                                 ],
                                 "required": true,
                                 "validator": "Must be a Hash"
+                            },
+                            {
+                                "allow_nil": false,
+                                "description": "",
+                                "expected_type": "Integer",
+                                "full_name": "organization",
+                                "name": "organization",
+                                "required": false,
+                                "validator": "Must be an int"
                             }
                         ],
                         "see": []

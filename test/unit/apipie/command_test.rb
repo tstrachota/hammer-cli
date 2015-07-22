@@ -1,6 +1,4 @@
 require File.join(File.dirname(__FILE__), '../test_helper')
-
-
 describe HammerCLI::Apipie::Command do
 
   class TestCommand < HammerCLI::Apipie::Command
@@ -152,6 +150,31 @@ describe HammerCLI::Apipie::Command do
       cmd_opt.method_options_for_params(params, {}).must_equal({"architecture"=>{"name"=>"test_name"}})
     end
 
+
+
   end
 
+  # context "defaults" do
+  #   def setup
+  #     HammerCLI::Settings.load({:defaults => {:organization => "2"}})
+  #   end
+  #
+  #   it "should add defaults to options" do
+  #     cmd_opt = OptionCommand.new("", ctx)
+  #     params = cmd_opt.class.resource.action(:create).params
+  #     cmd_opt.method_options({}).must_equal({"architecture"=>{"name"=>"test_name"},"organization" =>"2"})
+  #   end
+  #
+  #   it "shouldn't add the default value to options" do
+  #     cmd_opt = OptionCommand.new("", ctx)
+  #     params = cmd_opt.class.resource.action(:create).params
+  #     cmd_opt.method_options({"option_organization" => "1"}).must_equal({"architecture"=>{"name"=>"test_name"}, "organization" =>"1"})
+  #   end
+  #
+  #   def teardown
+  #     HammerCLI::Settings.clear
+  #   end
+  #
+  #   end
 end
+
