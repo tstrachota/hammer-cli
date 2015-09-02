@@ -1,0 +1,8 @@
+---
+:defaults:
+  :organization_id:
+    :provider: 'foreman'
+    :from_server: true
+  :location_id:
+    :value: 2
+    :from_server: false

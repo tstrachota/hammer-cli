@@ -1,3 +1,4 @@
+
 module HammerCLI::Apipie
   module Options
 
@@ -8,6 +9,7 @@ module HammerCLI::Apipie
 
     def method_options_for_params(params, options)
       opts = {}
+
       params.each do |p|
         if p.expected_type == :hash
           opts[p.name] = method_options_for_params(p.params, options)

@@ -2,14 +2,49 @@ require 'hammer_cli'
 require 'yaml'
 module HammerCLI
 
+  class BaseDefaultsProvider
+    def self.plugin_name
+      self.name.split('::').first.gsub(/^HammerCLI/, '').underscore
+    end
+
+    def self.register_provider
+      HammerCLI::Defaults.register_provider(self.plugin_name.to_sym, self)
+    end
+
+    def self.support?
+      raise NotImplementedError
+    end
+
+    def self.get_defaults
+      raise NotImplementedError
+    end
+  end
+
   class DefaultsCommand < HammerCLI::AbstractCommand
 
     class ListDefaultsCommand < HammerCLI::DefaultsCommand
       command_name 'list'
 
-      desc _('List all the defaults parameters')
+      desc _('List all the default parameters')
       def execute
         list_all_defaults_message
+        HammerCLI::EX_OK
+      end
+    end
+
+    class DeleteDefaultsCommand < HammerCLI::DefaultsCommand
+      command_name 'delete'
+
+      desc _('Delete a default param')
+      option "--param-name", "OPTION_NAME", _("The name of the default option"), :required => true
+
+      def execute
+        if Defaults::defaults_settings && Defaults::defaults_settings[option_param_name.to_sym]
+          Defaults.delete_default_from_conf(option_param_name.to_sym)
+          param_deleted(option_param_name)
+        else
+          variable_not_found
+        end
         HammerCLI::EX_OK
       end
     end
@@ -18,37 +53,38 @@ module HammerCLI
       command_name 'add'
 
       desc _('Add a default parameter to config')
-      option "--param-name", "Option_name", _("The name of the default option"), :required => true
-      option "--param-val", "Option_value", _("The value for the default option")
-      option "--plugin-name", "Option_name", _("The plugin name defaults will be generated for")
+      option "--param-name", "OPTION_NAME", _("The name of the default option"), :required => true
+      option "--param-val", "OPTION_VALUE", _("The value for the default option")
+      option "--plugin-name", "OPTION_PLUGIN_NAME", _("The plugin name defaults will be generated for")
 
       def execute
         begin
           if option_plugin_name.nil? && option_param_val.nil? || !option_plugin_name.nil? && !option_param_val.nil?
             bad_input
           else
-            namespace = ("HammerCLI" + option_plugin_name.split('_').collect!{ |w| w.downcase.capitalize }.join + "::Defaults") if option_plugin_name
             if option_plugin_name
-              raise NameError unless HammerCLI::Defaults.providers.any? {|p| p.to_s.include? namespace}
-              raise NotImplementedError unless HammerCLI::Defaults.providers[0].support? option_param_name
+              namespace = option_plugin_name.to_sym
+              raise NameError unless HammerCLI::Defaults.providers.keys.include?(namespace)
+              raise NotImplementedError unless HammerCLI::Defaults.providers[namespace].support? option_param_name
             end
-            Defaults.add_defaults_to_conf({option_param_name => option_param_val},option_plugin_name ? HammerCLI::Defaults.providers.find_index(namespace.constantize) : "")
-            added_default_message(option_param_name.to_s, option_param_val ? option_param_val.to_s : "that will be generated from the server")
+            Defaults.add_defaults_to_conf({option_param_name => option_param_val}, namespace)
+            added_default_message(option_param_name.to_s, option_param_val)
           end
-          rescue NameError => e
+        rescue NameError => e
           plugin_prob_message
-          rescue StandardError => e
+        rescue StandardError => e
           file_not_found_message
-          rescue NotImplementedError => e
+        rescue NotImplementedError => e
           defaults_not_supproted_by_plugin
-          HammerCLI::EX_CONFIG
+        HammerCLI::EX_CONFIG
         end
         HammerCLI::EX_OK
       end
     end
 
     def added_default_message(key, value)
-        print_message(_("Added " + %{key_val} + " default-option with value %{val_val}.") % {:key_val => key.to_s,:val_val => value.to_s } )
+        print_message(_("Added %{key_val} default-option with value that will be generated from the server.") % {:key_val => key.to_s} ) if value.nil?
+        print_message(_("Added %{key_val} default-option with value %{val_val}.") % {:key_val => key.to_s, :val_val=> value.to_s} ) unless value.nil?
     end
 
     def plugin_prob_message
@@ -59,20 +95,36 @@ module HammerCLI
       print_message(_("The param name is not supported by plugin"))
     end
 
+    def param_deleted(param)
+      print_message(_("%{param} was deleted successfully.") % {:param => param.to_s})
+    end
 
     def bad_input
-      print_message(_("You must specify a value or a plugin name, cant specify both."))
+      print_message(_("You must specify value or a plugin name, cant specify both."))
     end
 
     def self.file_cant_be_created
-      print_message(_("Couldn't add file to ~/.hammer/cli.modules.d please create the path before defaults will be enabled."))
+      print_message(_("Couldn't create %{s} please create the path before defaults will be enabled.") % {:s => Defaults::path})
+    end
+
+    def variable_not_found
+      print_message(_("Couldn't find the requested param in ~/.hammer/cli.modules.d."))
     end
 
     def list_all_defaults_message
-      HammerCLI::Settings.settings[:defaults].each do |key,val|
-          print_message('')
-          print_message(key.to_s+":")
-          print_message(YAML.dump(HammerCLI::Settings.settings[:defaults][key]))
+      unless Defaults::defaults_settings.nil?
+        print_message("--------------------")
+        print_message("Hammer defaults list")
+        print_message("--------------------")
+        Defaults::defaults_settings.each do |key,val|
+          if val[:from_server]
+            print_message(key.to_s + " : " +  _("(provided by %{plugin})") % {:plugin => val[:provider].to_s.split(':').first.gsub("HammerCLI", '')})
+          else
+            print_message(key.to_s + " : " + val[key][:value].to_s)
+          end
+        end
+      else
+        print_message(_("No defaults file was found"))
       end
     end
 
@@ -81,59 +133,70 @@ module HammerCLI
 
 
   class Defaults
-    def self.register_provider(provider)
-      Defaults.providers << provider
+    DIRECTORY = "#{Dir.home}/.hammer/cli.modules.d/"
+
+    def self.path
+      "#{Dir.home}/.hammer/cli.modules.d/defaults.yml"
+    end
+
+    def self.register_provider(provider_name, provider)
+      Defaults.providers[provider_name] = provider
     end
 
     def self.providers
-      @@providers ||= []
+      @@providers ||= {}
     end
 
-    def self.add_defaults_to_conf(options, provider)
-      create_default_file unless !defaults_file_exists?
-      path = "#{Dir.home}/.hammer/cli.modules.d/defaults.yml"
-      new_file = YAML.load_file(path)
-      options.each do |key, value|
-        key = key.to_sym
-        value.to_s.to_i if value.is_a? Integer
-        new_file[:defaults] = {} if new_file[:defaults].nil?
-        new_file[:defaults][key] = value ? {:value => value, :from_server => false} : {:from_server => true, :provider => provider}
-      end
-      File.open(path,'w') do |h|
-        h.write new_file.to_yaml
-      end
+    def self.defaults_settings
+      @defaults_settings ||= HammerCLI::Settings.settings[:defaults]
     end
-
-    #this method will be overriden by plugins who wish to have a defaults params.
-    def self.get_defaults(option)
-      unless HammerCLI::Settings.settings[:defaults].nil? || HammerCLI::Settings.settings[:defaults][option.to_sym].nil?
-        if HammerCLI::Settings.settings[:defaults][option.to_sym][:from_server]
-          value =  HammerCLI::Defaults.providers[HammerCLI::Settings.settings[:defaults][option.to_sym][:provider]].get_defaults(option.to_sym)
-          value
-        else
-          value = HammerCLI::Settings.settings[:defaults][option.to_sym][:value] if defaults_file_exists?
-          value
-        end
-      end
-    end
-
-    def self.defaults_file_exists?
-      HammerCLI::Settings.settings[:defaults].nil?
-    end
-
 
     def self.create_default_file
-      path = "#{Dir.home}/.hammer/cli.modules.d/"
-      if Dir.exist?(path)
-        new_file = File.new(path + "/defaults.yml", "w")
+      if Dir.exist?(DIRECTORY)
+        new_file = File.new(path, "w")
         new_file.write ":defaults:"
         new_file.close
       else
         DefaultsCommand.file_cant_be_created
       end
-
     end
 
+    def self.delete_default_from_conf(param)
+      conf_file = YAML.load_file(path)
+      conf_file[:defaults].delete(param)
+      write_to_file conf_file
+      conf_file
+    end
+
+    def self.write_to_file(file)
+      File.open(path,'w') do |h|
+        h.write file.to_yaml
+      end
+    end
+
+    def self.add_defaults_to_conf(options, provider)
+      create_default_file if Defaults::defaults_settings.nil?
+      new_file = YAML.load_file(path)
+      options.each do |key, value|
+        key = key.to_sym
+        new_file[:defaults] = {} if new_file[:defaults].nil?
+        new_file[:defaults][key] = value ? {:value => value, :from_server => false} : {:from_server => true, :provider => provider}
+      end
+      write_to_file new_file
+      new_file
+    end
+
+    #this method will be overriden by plugins who wish to have a defaults params.
+    def self.get_defaults(option)
+      unless Defaults::defaults_settings.nil? || Defaults::defaults_settings[option.to_sym].nil?
+        if Defaults::defaults_settings[option.to_sym][:from_server]
+          Defaults.providers[Defaults::defaults_settings[option.to_sym][:provider]].get_defaults(option.to_sym)
+        else
+          Defaults::defaults_settings[option.to_sym][:value]
+        end
+      end
+    end
+  end
+  
   HammerCLI::MainCommand.subcommand "defaults", _("Defaults management"), HammerCLI::DefaultsCommand
-end
 end
