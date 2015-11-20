@@ -168,22 +168,22 @@ module HammerCLI
       conf_file
     end
 
-    def self.write_to_file(file)
+    def self.write_to_file(defaults)
       File.open(path,'w') do |h|
-        h.write file.to_yaml
+        h.write defaults.to_yaml
       end
     end
 
-    def self.add_defaults_to_conf(options, provider)
+    def self.add_defaults_to_conf(default_options, provider)
       create_default_file if Defaults::defaults_settings.nil?
-      new_file = YAML.load_file(path)
-      options.each do |key, value|
+      defaults = YAML.load_file(path)
+      defaults[:defaults] ||= {}
+      default_options.each do |key, value|
         key = key.to_sym
-        new_file[:defaults] = {} if new_file[:defaults].nil?
-        new_file[:defaults][key] = value ? {:value => value, :from_server => false} : {:from_server => true, :provider => provider}
+        defaults[:defaults][key] = value ? {:value => value, :from_server => false} : {:from_server => true, :provider => provider}
       end
-      write_to_file new_file
-      new_file
+      write_to_file defaults
+      defaults
     end
 
     #this method will be overriden by plugins who wish to have a defaults params.
