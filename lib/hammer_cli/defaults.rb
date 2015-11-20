@@ -76,15 +76,15 @@ module HammerCLI
           file_not_found_message
         rescue NotImplementedError => e
           defaults_not_supproted_by_plugin
-        HammerCLI::EX_CONFIG
+          HammerCLI::EX_CONFIG
         end
         HammerCLI::EX_OK
       end
     end
 
     def added_default_message(key, value)
-        print_message(_("Added %{key_val} default-option with value that will be generated from the server.") % {:key_val => key.to_s} ) if value.nil?
-        print_message(_("Added %{key_val} default-option with value %{val_val}.") % {:key_val => key.to_s, :val_val=> value.to_s} ) unless value.nil?
+      print_message(_("Added %{key_val} default-option with value that will be generated from the server.") % {:key_val => key.to_s} ) if value.nil?
+      print_message(_("Added %{key_val} default-option with value %{val_val}.") % {:key_val => key.to_s, :val_val=> value.to_s} ) unless value.nil?
     end
 
     def plugin_prob_message
