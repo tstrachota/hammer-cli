@@ -39,8 +39,8 @@ module HammerCLI
       option "--param-name", "OPTION_NAME", _("The name of the default option"), :required => true
 
       def execute
-        if Defaults::defaults_settings && Defaults::defaults_settings[option_param_name.to_sym]
-          Defaults.delete_default_from_conf(option_param_name.to_sym)
+        if context[:defaults].defaults_settings && context[:defaults].defaults_settings[option_param_name.to_sym]
+          context[:defaults].delete_default_from_conf(option_param_name.to_sym)
           param_deleted(option_param_name)
         else
           variable_not_found
@@ -64,8 +64,8 @@ module HammerCLI
           else
             if option_plugin_name
               namespace = option_plugin_name.to_sym
-              raise NameError unless HammerCLI::Defaults.providers.keys.include?(namespace)
-              raise NotImplementedError unless HammerCLI::Defaults.providers[namespace].support? option_param_name
+              raise NameError unless context[:defaults].providers.keys.include?(namespace)
+              raise NotImplementedError unless context[:defaults].providers[namespace].support? option_param_name
             end
             Defaults.add_defaults_to_conf({option_param_name => option_param_val}, namespace)
             added_default_message(option_param_name.to_s, option_param_val)
@@ -104,19 +104,19 @@ module HammerCLI
     end
 
     def self.file_cant_be_created
-      print_message(_("Couldn't create %s please create the path before defaults will be enabled.") % Defaults::path)
+      print_message(_("Couldn't create %s please create the path before defaults will be enabled.") % context[:defaults].path)
     end
 
     def variable_not_found
-      print_message(_("Couldn't find the requested param in %s.") % Defaults::path)
+      print_message(_("Couldn't find the requested param in %s.") % context[:defaults].path)
     end
 
     def list_all_defaults_message
-      unless Defaults::defaults_settings.nil?
+      unless context[:defaults].defaults_settings.nil?
         print_message("--------------------")
         print_message("Hammer defaults list")
         print_message("--------------------")
-        Defaults::defaults_settings.each do |key,val|
+        context[:defaults].defaults_settings.each do |key,val|
           if val[:from_server]
             print_message(key.to_s + " : " +  _("(provided by %{plugin})") % {:plugin => val[:provider].to_s.split(':').first.gsub("HammerCLI", '')})
           else
