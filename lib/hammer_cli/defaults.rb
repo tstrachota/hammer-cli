@@ -186,7 +186,6 @@ module HammerCLI
       defaults
     end
 
-    #this method will be overriden by plugins who wish to have a defaults params.
     def self.get_defaults(option)
       unless Defaults::defaults_settings.nil? || Defaults::defaults_settings[option.to_sym].nil?
         if Defaults::defaults_settings[option.to_sym][:from_server]
