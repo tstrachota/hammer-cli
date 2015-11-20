@@ -104,11 +104,11 @@ module HammerCLI
     end
 
     def self.file_cant_be_created
-      print_message(_("Couldn't create %{s} please create the path before defaults will be enabled.") % {:s => Defaults::path})
+      print_message(_("Couldn't create %s please create the path before defaults will be enabled.") % Defaults::path)
     end
 
     def variable_not_found
-      print_message(_("Couldn't find the requested param in ~/.hammer/cli.modules.d."))
+      print_message(_("Couldn't find the requested param in %s.") % Defaults::path)
     end
 
     def list_all_defaults_message
@@ -120,7 +120,7 @@ module HammerCLI
           if val[:from_server]
             print_message(key.to_s + " : " +  _("(provided by %{plugin})") % {:plugin => val[:provider].to_s.split(':').first.gsub("HammerCLI", '')})
           else
-            print_message(key.to_s + " : " + val[key][:value].to_s)
+            print_message(key.to_s + " : " + val[:value].to_s)
           end
         end
       else
@@ -133,10 +133,10 @@ module HammerCLI
 
 
   class Defaults
-    DIRECTORY = "#{Dir.home}/.hammer/cli.modules.d/"
+    DIRECTORY = "#{Dir.home}/.hammer/cli.modules.d"
 
     def self.path
-      "#{Dir.home}/.hammer/cli.modules.d/defaults.yml"
+      "#{DIRECTORY}/defaults.yml"
     end
 
     def self.register_provider(provider_name, provider)
@@ -197,6 +197,6 @@ module HammerCLI
       end
     end
   end
-  
+
   HammerCLI::MainCommand.subcommand "defaults", _("Defaults management"), HammerCLI::DefaultsCommand
 end
