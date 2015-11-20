@@ -2,10 +2,10 @@ require File.join(File.dirname(__FILE__), 'test_helper')
 require 'tempfile'
 
 describe HammerCLI::Defaults do
-	FILEPATH = File.join(File.dirname(__FILE__), '/fixtures/defaults/defaults.yml')
+  FILEPATH = File.join(File.dirname(__FILE__), '/fixtures/defaults/defaults.yml')
 
   before(:all) do
-	  HammerCLI::Settings::load(YAML::load(File.open(FILEPATH)))
+    HammerCLI::Settings::load(YAML::load(File.open(FILEPATH)))
     HammerCLI::Defaults.stubs(:path).returns FILEPATH
     HammerCLI::Defaults.stubs(:write_to_file).returns true
   end
