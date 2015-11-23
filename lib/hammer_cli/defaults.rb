@@ -67,7 +67,7 @@ module HammerCLI
               raise NameError unless context[:defaults].providers.keys.include?(namespace)
               raise NotImplementedError unless context[:defaults].providers[namespace].support? option_param_name
             end
-            Defaults.add_defaults_to_conf({option_param_name => option_param_val}, namespace)
+            context[:defaults].add_defaults_to_conf({option_param_name => option_param_val}, namespace)
             added_default_message(option_param_name.to_s, option_param_val)
           end
         rescue NameError => e
@@ -79,6 +79,10 @@ module HammerCLI
           HammerCLI::EX_CONFIG
         end
         HammerCLI::EX_OK
+      end
+
+      def file_not_found_message
+        print_message(_("Couldn't open the defaults file."))
       end
     end
 
@@ -92,7 +96,7 @@ module HammerCLI
     end
 
     def defaults_not_supproted_by_plugin
-      print_message(_("The param name is not supported by plugin"))
+      print_message(_("The param name is not supported by plugin."))
     end
 
     def param_deleted(param)
