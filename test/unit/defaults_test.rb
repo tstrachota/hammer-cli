@@ -12,14 +12,14 @@ describe HammerCLI::Defaults do
 
   it "Should add a default param to defaults file, without a provider" do
     defaults_result = HammerCLI::Defaults.add_defaults_to_conf({"organization_id"=> 3}, nil)
-    assert_equal  defaults_result[:defaults][:organization_id][:value], 3
-    assert_equal  defaults_result[:defaults][:organization_id][:from_server], false
+    assert_equal 3, defaults_result[:defaults][:organization_id][:value]
+    assert_equal false, defaults_result[:defaults][:organization_id][:from_server]
   end
 
   it "Should add a default param to defaults file, with provider" do
     defaults_result = HammerCLI::Defaults.add_defaults_to_conf({"organization_id"=>nil}, :foreman)
-    assert_equal defaults_result[:defaults][:organization_id][:provider], :foreman
-    assert_equal defaults_result[:defaults][:organization_id][:from_server], true
+    assert_equal :foreman, defaults_result[:defaults][:organization_id][:provider]
+    assert_equal true, defaults_result[:defaults][:organization_id][:from_server]
   end
 
   it "Should remove default param from defaults file" do
@@ -29,14 +29,14 @@ describe HammerCLI::Defaults do
 
   it "should get the default param, without provider" do
 
-    assert_equal HammerCLI::Defaults.get_defaults("location_id"), 2
+    assert_equal 2, HammerCLI::Defaults.get_defaults("location_id")
   end
 
   it "should get the default param, with provider" do
     #simulating HammerCli as a provider
     HammerCLI::Defaults.stubs(:providers).returns HammerCLI
     HammerCLI::Defaults.stubs(:get_defaults).returns 3
-    assert_equal HammerCLI::Defaults.get_defaults("organization_id") ,3
+    assert_equal 3, HammerCLI::Defaults.get_defaults("organization_id")
     HammerCLI::Defaults.unstub(:get_defaults)
   end
 
