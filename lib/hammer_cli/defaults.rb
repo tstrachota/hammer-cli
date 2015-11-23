@@ -8,7 +8,7 @@ module HammerCLI
     end
 
     def self.register_provider
-      HammerCLI::Defaults.register_provider(self.plugin_name.to_sym, self)
+      HammerCLI::Defaults.register_provider(self.plugin_name, self)
     end
 
     def self.support?
@@ -144,7 +144,7 @@ module HammerCLI
     end
 
     def self.register_provider(provider_name, provider)
-      Defaults.providers[provider_name] = provider
+      Defaults.providers[provider_name.to_s] = provider
     end
 
     def self.providers
