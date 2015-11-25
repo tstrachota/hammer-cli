@@ -58,31 +58,27 @@ module HammerCLI
       option "--plugin-name", "OPTION_PLUGIN_NAME", _("The plugin name defaults will be generated for")
 
       def execute
-        begin
-          if option_plugin_name.nil? && option_param_val.nil? || !option_plugin_name.nil? && !option_param_val.nil?
-            bad_input
-          else
-            if option_plugin_name
-              namespace = option_plugin_name.to_sym
-              raise NameError unless context[:defaults].providers.keys.include?(namespace)
-              raise NotImplementedError unless context[:defaults].providers[namespace].support? option_param_name
+        if option_plugin_name.nil? && option_param_val.nil? || !option_plugin_name.nil? && !option_param_val.nil?
+          bad_input
+          HammerCLI::EX_USAGE
+        else
+          if option_plugin_name
+            namespace = option_plugin_name.to_sym
+            if !context[:defaults].providers.keys.include?(namespace)
+              plugin_prob_message
+              return HammerCLI::EX_USAGE
+            elsif !context[:defaults].providers[namespace].support?(option_param_name)
+              defaults_not_supproted_by_plugin
+              return HammerCLI::EX_CONFIG
             end
-            context[:defaults].add_defaults_to_conf({option_param_name => option_param_val}, namespace)
-            added_default_message(option_param_name.to_s, option_param_val)
           end
-        rescue NameError => e
-          plugin_prob_message
-        rescue StandardError => e
-          file_not_found_message
-        rescue NotImplementedError => e
-          defaults_not_supproted_by_plugin
-          HammerCLI::EX_CONFIG
+          context[:defaults].add_defaults_to_conf({option_param_name => option_param_val}, namespace)
+          added_default_message(option_param_name.to_s, option_param_val)
+          HammerCLI::EX_OK
         end
-        HammerCLI::EX_OK
-      end
-
-      def file_not_found_message
-        print_message(_("Couldn't open the defaults file."))
+      rescue Defaults::DefaultsError, SystemCallError => e
+        print_message(e.message)
+        HammerCLI::EX_CONFIG
       end
     end
 
@@ -105,10 +101,6 @@ module HammerCLI
 
     def bad_input
       print_message(_("You must specify value or a plugin name, cant specify both."))
-    end
-
-    def self.file_cant_be_created
-      print_message(_("Couldn't create %s please create the path before defaults will be enabled.") % context[:defaults].path)
     end
 
     def variable_not_found
@@ -139,6 +131,9 @@ module HammerCLI
   class Defaults
     DIRECTORY = "#{Dir.home}/.hammer/cli.modules.d"
 
+    class DefaultsError < StandardError; end
+    class DefaultsPathError < DefaultsError; end
+
     def self.path
       "#{DIRECTORY}/defaults.yml"
     end
@@ -161,7 +156,7 @@ module HammerCLI
         new_file.write ":defaults:"
         new_file.close
       else
-        DefaultsCommand.file_cant_be_created
+        raise DefaultsPathError.new(_("Couldn't create %s please create the path before defaults will be enabled.") % path)
       end
     end
 

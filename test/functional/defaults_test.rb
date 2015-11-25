@@ -127,14 +127,14 @@ describe 'commands' do
       assert_equal "Couldn't reach the plugin defaults class, eiter the plugin doesn't have defaults class or the plugin misspelled.(example, for Hammer_CLI_Foreman --plugin-name foreman)\n", out
     end
 
-    it 'reports missing defaults file' do
+    it 'reports IO errors' do
       options = ['--param-name=param', '--param-val=83']
 
-      @defaults.expects(:add_defaults_to_conf).raises(Errno::ENOENT)
+      @defaults.expects(:add_defaults_to_conf).raises(Errno::ENOENT, '/unknown/path')
 
       out, err = run_cmd(HammerCLI::DefaultsCommand::AddDefaultsCommand, options)
       assert_equal "", err
-      assert_equal "Couldn't open the defaults file.\n", out
+      assert_equal "No such file or directory - /unknown/path\n", out
     end
   end
 
