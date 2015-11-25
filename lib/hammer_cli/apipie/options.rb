@@ -39,7 +39,7 @@ module HammerCLI::Apipie
       defaults = {}
       options.each do |option|
         option = option.name.to_s
-        value = HammerCLI::Defaults.get_defaults(option) unless explicit_options["option_"+option]
+        value = context[:defaults].get_defaults(option) unless explicit_options["option_"+option]
         if value
           defaults["option_" + option] = value
           logger.info("You are using the following default parameter:  #{option} = #{value}")

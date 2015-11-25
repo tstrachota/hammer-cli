@@ -8,7 +8,7 @@ module HammerCLI
     end
 
     def self.register_provider
-      HammerCLI::Defaults.register_provider(self.plugin_name, self)
+      HammerCLI.defaults.register_provider(self)
     end
 
     def self.support?
@@ -63,8 +63,8 @@ module HammerCLI
           HammerCLI::EX_USAGE
         else
           if option_plugin_name
-            namespace = option_plugin_name.to_sym
-            if !context[:defaults].providers.keys.include?(namespace)
+            namespace = option_plugin_name
+            if !context[:defaults].providers.key?(namespace)
               plugin_prob_message
               return HammerCLI::EX_USAGE
             elsif !context[:defaults].providers[namespace].support?(option_param_name)
@@ -129,52 +129,35 @@ module HammerCLI
 
 
   class Defaults
-    DIRECTORY = "#{Dir.home}/.hammer/cli.modules.d"
+    DEFAULT_FILE = "#{Dir.home}/.hammer/cli.modules.d/defaults.yml"
 
     class DefaultsError < StandardError; end
     class DefaultsPathError < DefaultsError; end
 
-    def self.path
-      "#{DIRECTORY}/defaults.yml"
+    attr_reader :defaults_settings
+
+    def initialize(settings, file_path = nil)
+      @defaults_settings = settings
+      @path = file_path || DEFAULT_FILE
     end
 
-    def self.register_provider(provider_name, provider)
-      Defaults.providers[provider_name.to_s] = provider
+    def register_provider(provider)
+      providers[provider.plugin_name.to_s] = provider
     end
 
-    def self.providers
-      @@providers ||= {}
+    def providers
+      @providers ||= {}
     end
 
-    def self.defaults_settings
-      @defaults_settings ||= HammerCLI::Settings.settings[:defaults]
-    end
-
-    def self.create_default_file
-      if Dir.exist?(DIRECTORY)
-        new_file = File.new(path, "w")
-        new_file.write ":defaults:"
-        new_file.close
-      else
-        raise DefaultsPathError.new(_("Couldn't create %s please create the path before defaults will be enabled.") % path)
-      end
-    end
-
-    def self.delete_default_from_conf(param)
+    def delete_default_from_conf(param)
       conf_file = YAML.load_file(path)
       conf_file[:defaults].delete(param)
       write_to_file conf_file
       conf_file
     end
 
-    def self.write_to_file(defaults)
-      File.open(path,'w') do |h|
-        h.write defaults.to_yaml
-      end
-    end
-
-    def self.add_defaults_to_conf(default_options, provider)
-      create_default_file if Defaults::defaults_settings.nil?
+    def add_defaults_to_conf(default_options, provider)
+      create_default_file if defaults_settings.nil?
       defaults = YAML.load_file(path)
       defaults[:defaults] ||= {}
       default_options.each do |key, value|
@@ -185,15 +168,39 @@ module HammerCLI
       defaults
     end
 
-    def self.get_defaults(option)
-      unless Defaults::defaults_settings.nil? || Defaults::defaults_settings[option.to_sym].nil?
-        if Defaults::defaults_settings[option.to_sym][:from_server]
-          Defaults.providers[Defaults::defaults_settings[option.to_sym][:provider]].get_defaults(option.to_sym)
+    def get_defaults(option)
+      unless defaults_settings.nil? || defaults_settings[option.to_sym].nil?
+        if defaults_settings[option.to_sym][:from_server]
+          providers[defaults_settings[option.to_sym][:provider]].get_defaults(option.to_sym)
         else
-          Defaults::defaults_settings[option.to_sym][:value]
+          defaults_settings[option.to_sym][:value]
         end
       end
     end
+
+    def write_to_file(defaults)
+      File.open(path,'w') do |h|
+        h.write defaults.to_yaml
+      end
+    end
+
+    protected
+
+    attr_reader :path
+
+    def create_default_file
+      if Dir.exist?(File.dirname(@path))
+        new_file = File.new(path, "w")
+        new_file.write ":defaults:"
+        new_file.close
+      else
+        raise DefaultsPathError.new(_("Couldn't create %s please create the path before defaults will be enabled.") % path)
+      end
+    end
+  end
+
+  def self.defaults
+    @defaults ||= Defaults.new(HammerCLI::Settings.settings[:defaults])
   end
 
   HammerCLI::MainCommand.subcommand "defaults", _("Defaults management"), HammerCLI::DefaultsCommand

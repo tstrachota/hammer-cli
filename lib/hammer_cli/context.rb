@@ -4,7 +4,7 @@ module HammerCLI
 
   def self.context
     {
-      :defaults => HammerCLI::Defaults
+      :defaults => HammerCLI.defaults
     }
   end
 
