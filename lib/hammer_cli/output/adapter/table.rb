@@ -1,5 +1,32 @@
-require 'table_print'
+require 'tty-table'
 require File.join(File.dirname(__FILE__), 'wrapper_formatter')
+
+class HammerTableBorder < TTY::Table::Border::ASCII
+  def_border do
+    top       '-'
+    top_mid   '|'
+    top_left  ''
+    top_right ''
+    bottom       '-'
+    bottom_mid   '|'
+    bottom_left  ''
+    bottom_right ''
+    mid       '-'
+    mid_mid   '|'
+    mid_left  ''
+    mid_right ''
+    left   ''
+    center '|'
+    right  ''
+  end
+end
+
+class HammerRenderer < TTY::Table::Renderer::Basic
+
+  def initialize(table, options = {})
+    super(table, options.merge(border_class: HammerTableBorder))
+  end
+end
 
 module HammerCLI::Output::Adapter
 
@@ -18,45 +45,36 @@ module HammerCLI::Output::Adapter
 
     def print_collection(all_fields, collection)
       fields = field_filter.filter(all_fields)
+      headers = fields.map { |f| label_for(f) }
 
-      rows = collection.collect do |d|
-        row = {}
-        fields.each do |f|
-          row[label_for(f)] = WrapperFormatter.new(
+      rows = collection.map do |d|
+        fields.map do |f|
+          WrapperFormatter.new(
             @formatters.formatter_for_type(f.class), f.parameters).format(data_for_field(f, d) || "")
         end
-        row
       end
 
-      if rows.empty?
-        keys = fields.map { |f| [label_for(f), ''] }
-        rows = [Hash[keys]]
-        @header_only = true
+      table = TTY::Table.new(headers, rows)
+
+      natural_widths = TTY::Table::ColumnSet.new(table).extract_widths
+      column_widths = fields.each_with_index.map do |f, i|
+        max_width_for(f) || natural_widths[i]
       end
 
-      options = fields.collect do |f|
-        { label_for(f) => {
-            :width => max_width_for(f)
-          }
-        }
+      if table.empty?
+        # tty-table doesn't print anything if the table is empty
+        table << Array.new(fields.count)
+        header_only = true
       end
 
-      sort_order = fields.map { |f| f.label.upcase }
-
-      printer = TablePrint::Printer.new(rows, options)
-      TablePrint::Config.max_width = MAX_COLUMN_WIDTH
-      TablePrint::Config.multibyte = true
-
-      output = sort_columns(printer.table_print, sort_order)
-      dashes = /\n([-|]+)\n/.match(output)
-
-      if @header_only
-        output = output.lines.first
-      end
-
-      puts dashes[1] if dashes
-      puts output
-      puts dashes[1] if dashes
+      renderer = HammerRenderer.new(table,
+        :padding => [0,1,0,1],
+        :column_widths => column_widths
+      )
+      output = renderer.render.split("\n")
+      output = output.map { |line| line.slice(1..-2) }
+      output = output[0..2] if header_only
+      puts output.join("\n")
     end
 
     protected
@@ -72,9 +90,9 @@ module HammerCLI::Output::Adapter
     def label_for(field)
       width = width_for(field)
       if width
-        "%-#{width}s" % field.label.to_s
+        "%-#{width}s" % field.label.to_s.upcase
       else
-        field.label.to_s
+        field.label.to_s.upcase
       end
     end
 
@@ -89,41 +107,6 @@ module HammerCLI::Output::Adapter
       width = field.parameters[:width]
       width = MIN_COLUMN_WIDTH if width && width < MIN_COLUMN_WIDTH
       width
-    end
-
-
-    def sort_columns(output, sort_order)
-      return output if sort_order.length == 1 # don't sort one column
-      delimiter = ' | '
-      lines = output.split("\n")
-      out = []
-
-      headers = lines.first.split(delimiter).map(&:strip)
-
-      # create mapping table for column indexes
-      sort_map = []
-      sort_order.each { |c| sort_map << headers.index(c) }
-
-      lines.each do |line|
-        columns = line.split(delimiter)
-        if columns.length == 1 # dashes
-          columns = columns.first.split('-|-')
-          if columns.length == 1
-            out << columns.first
-          else # new style dashes
-            new_row = []
-            sort_map.each { |i| new_row << columns[i] }
-            out << new_row.join('-|-')
-          end
-        else
-          # reorder row
-          new_row = []
-          sort_map.each { |i| new_row << columns[i] }
-          out << new_row.join(delimiter)
-        end
-      end
-
-      out.join("\n")
     end
 
   end

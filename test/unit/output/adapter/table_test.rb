@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require File.join(File.dirname(__FILE__), '../../test_helper')
 
 describe HammerCLI::Output::Adapter::Table do
@@ -82,7 +84,7 @@ describe HammerCLI::Output::Adapter::Table do
           "-----------|---------",
           "LONG       | LASTNAME",
           "-----------|---------",
-          "SomeVer... | Doe     ",
+          "SomeVeryL… | Doe     ",
           "-----------|---------",
           ""
         ].join("\n")
@@ -98,7 +100,7 @@ describe HammerCLI::Output::Adapter::Table do
           "-----------|---------",
           "LONG       | LASTNAME",
           "-----------|---------",
-          "SomeVer... | Doe     ",
+          "SomeVeryL… | Doe     ",
           "-----------|---------",
           ""
         ].join("\n")
