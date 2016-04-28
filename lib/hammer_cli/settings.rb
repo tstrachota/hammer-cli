@@ -64,12 +64,12 @@ module HammerCLI
       @path_history
     end
 
-    private
     def self.settings
       @settings_hash ||= {}
       @settings_hash
     end
 
+    private
     def self.deep_merge!(h, other_h)
       other_h = symbolize_hash(other_h)
 
