@@ -1,5 +1,6 @@
 require 'table_print'
 require File.join(File.dirname(__FILE__), 'wrapper_formatter')
+require File.join(File.dirname(__FILE__), '../../../table_print/formatter')
 
 module HammerCLI::Output::Adapter
 
