@@ -13,11 +13,11 @@ module HammerCLI
 
     def execute
       if option_paths?
-        puts HammerCLI::Settings.path_history
+        puts context[:settings].path_history
       elsif option_list?
-        puts HammerCLI::Settings.settings.to_yaml
+        puts context[:settings].settings.to_yaml
       elsif option_list_by_path?
-        HammerCLI::Settings.path_history.each do |cfg_file|
+        context[:settings].path_history.each do |cfg_file|
           puts cfg_file
           puts YAML::load(File.open(cfg_file)).to_yaml
           puts
