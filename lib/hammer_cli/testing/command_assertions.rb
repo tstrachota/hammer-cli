@@ -1,9 +1,9 @@
 module HammerCLI
   module Testing
     module CommandAssertions
-      class CommandExpectation
-        include MiniTest::Assertions
+      include MiniTest::Assertions
 
+      class CommandExpectation
         attr_accessor :expected_out, :expected_err, :expected_exit_code
 
         def initialize(expected_out="", expected_err="", expected_exit_code=0)
@@ -58,6 +58,7 @@ module HammerCLI
       end
 
       def assert_equal_or_match(expected, actual)
+        # require 'pry'; binding.pry
         case expected
         when String
           assert_equal(expected, actual)
@@ -65,7 +66,7 @@ module HammerCLI
           expected.assert_match(actual)
         else
           msg = actual
-          assert_match(expected, actual, msg)
+          MiniTest::Assertions.send(:assert_match, expected, actual, msg)
         end
       end
 
