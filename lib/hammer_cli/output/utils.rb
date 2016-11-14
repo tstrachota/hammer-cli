@@ -1,12 +1,15 @@
+require 'unicode/display_width'
+
 module HammerCLI
   module Output
     module Utils
       def self.real_length(value)
-        value.gsub(/\033\[[^m]*m/, '').gsub(/\p{Han}|\p{Katakana}|\p{Hiragana}\p{Hangul}/, '##').size
+        decolorized = value.gsub(/\033\[[^m]*m/, '')
+        Unicode::DisplayWidth.of(decolorized, 2)
       end
 
       def self.real_char_length(ch)
-        (ch =~ /\p{Han}|\p{Katakana}|\p{Hiragana}\p{Hangul}/) ? 2 : 1
+        Unicode::DisplayWidth.of(ch, 2)
       end
 
       def self.real_truncate(value, required_size)
