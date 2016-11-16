@@ -27,6 +27,7 @@ describe HammerCLI::Output::Adapter::Table do
       :firstname => "John",
       :lastname => "Doe",
       :two_column_chars => "文字漢字",
+      :czech_chars => "žluťoučký kůň",
       :colorized_name => "#{red}John#{reset}",
       :fullname => "John Doe",
       :long => "SomeVeryLongString",
@@ -106,6 +107,22 @@ describe HammerCLI::Output::Adapter::Table do
           "SOME CHARACTERS | LASTNAME",
           "----------------|---------",
           "文字漢字        | Doe     ",
+          "----------------|---------",
+          ""
+        ].join("\n")
+
+        proc { adapter.print_collection(fields, data) }.must_output(expected_output)
+      end
+
+      it "calculates correct width of czech characters" do
+        first_field = Fields::Field.new(:path => [:czech_chars], :label => "Some characters")
+        fields = [first_field, field_lastname]
+
+        expected_output = [
+          "----------------|---------",
+          "SOME CHARACTERS | LASTNAME",
+          "----------------|---------",
+          "žluťoučký kůň   | Doe     ",
           "----------------|---------",
           ""
         ].join("\n")

@@ -5,11 +5,11 @@ module HammerCLI
     module Utils
       def self.real_length(value)
         decolorized = value.gsub(/\033\[[^m]*m/, '')
-        Unicode::DisplayWidth.of(decolorized, 2)
+        Unicode::DisplayWidth.of(decolorized)
       end
 
       def self.real_char_length(ch)
-        Unicode::DisplayWidth.of(ch, 2)
+        Unicode::DisplayWidth.of(ch)
       end
 
       def self.real_truncate(value, required_size)
