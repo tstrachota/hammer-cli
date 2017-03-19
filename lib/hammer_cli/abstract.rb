@@ -4,6 +4,7 @@ require 'hammer_cli/options/option_definition'
 require 'hammer_cli/options/option_collector'
 require 'hammer_cli/options/sources/command_line'
 require 'hammer_cli/options/sources/saved_defaults'
+require 'hammer_cli/options/sources/nilify'
 require 'hammer_cli/clamp'
 require 'hammer_cli/subcommand'
 require 'hammer_cli/options/matcher'
@@ -242,7 +243,8 @@ module HammerCLI
     def option_collector
       @option_collector ||= HammerCLI::Options::OptionCollector.new(self.class.recognised_options, [
         HammerCLI::Options::Sources::CommandLine.new(self),
-        HammerCLI::Options::Sources::SavedDefaults.new(context[:defaults], logger)
+        HammerCLI::Options::Sources::SavedDefaults.new(context[:defaults], logger),
+        HammerCLI::Options::Sources::Nilify.new,
       ])
     end
 

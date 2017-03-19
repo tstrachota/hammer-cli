@@ -20,6 +20,15 @@ module HammerCLI
         end
       end
 
+      class Default < AbstractNormalizer
+        def format(val)
+          if val == 'NIL'
+            nil
+          else
+            val
+          end
+        end
+      end
 
       class KeyValueList < AbstractNormalizer
 
