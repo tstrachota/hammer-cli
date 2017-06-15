@@ -1,6 +1,16 @@
 module HammerCLI::Output::Adapter
   class Json < TreeStructure
 
+    def tags
+      [ :plaintext_values,
+        :structured_values,
+        :data, # legacy value, has the same meaning as :structured_values
+        :variable_structure,
+        :machine_readable,
+        :json  # specific tag for this provider
+      ]
+    end
+
     def print_record(fields, record)
       result = prepare_collection(fields, [record].flatten(1))
       puts JSON.pretty_generate(result.first)

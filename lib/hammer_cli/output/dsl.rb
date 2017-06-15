@@ -17,13 +17,15 @@ module HammerCLI::Output
 
     protected
 
-    def field(key, label, type=nil, options={}, &block)
+    def field(key, label=nil, type=nil, options={}, &block)
       options[:path] = current_path.clone
       options[:path] << key if !key.nil?
 
+      options[:adaptors] ||= @current_adaptors
+
       options[:label] = label
       type ||= Fields::Field
-      custom_field type, options, &block
+      custom_field(type, options, &block)
     end
 
     def custom_field(type, options={}, &block)
@@ -31,8 +33,9 @@ module HammerCLI::Output
     end
 
     def label(label, options={}, &block)
-      options[:path] = current_path.clone
+      options[:path] ||= current_path.clone
       options[:label] = label
+      options[:adaptors] ||= @current_adaptors
       custom_field Fields::Label, options, &block
     end
 
@@ -40,6 +43,12 @@ module HammerCLI::Output
       self.current_path.push key
       yield if block_given?
       self.current_path.pop
+    end
+
+    def adaptors(tags)
+      @current_adaptors = tags
+      yield if block_given?
+      @current_adaptors = nil
     end
 
     def collection(key, label, options={}, &block)

@@ -64,24 +64,9 @@ module HammerCLI::Output
 
     end
 
-    class ColorFormatter
-      def initialize(color)
-        @color = color
-      end
-
-      def tags
-        [:screen, :flat]
-      end
-
-      def format(data, field_params={})
-        c = HighLine.color(data.to_s, @color)
-      end
-    end
-
     class DateFormatter < FieldFormatter
-
       def tags
-        [:flat]
+        [:human_readable]
       end
 
       def format(string_date, field_params={})
@@ -92,11 +77,17 @@ module HammerCLI::Output
       end
     end
 
+    # TODO:
+    # base - format
+    # table - format
+    # csv - format
+    # yaml - return array
+    # json - return array
     class ListFormatter < FieldFormatter
       INDENT = "  "
 
       def tags
-        [:flat]
+        [:flat_values]
       end
 
       def format(list, field_params={})
@@ -115,10 +106,15 @@ module HammerCLI::Output
       end
     end
 
+    # TODO:
+    # base - format
+    # table - format
+    # csv - serialized json?? - design how to do it with parameters
+    # yaml - return hash
+    # json - return hash
     class KeyValueFormatter < FieldFormatter
-
       def tags
-        [:screen, :flat]
+        [:human_readable]
       end
 
       def format(params, field_params={})
@@ -132,8 +128,13 @@ module HammerCLI::Output
       end
     end
 
+    # TODO:
+    # base - format
+    # table - remove newlines
+    # csv - return original value (string)
+    # yaml - return original value (string)
+    # json - return original value (string)
     class LongTextFormatter < FieldFormatter
-
       INDENT = "  "
 
       def initialize(options = {})
@@ -141,7 +142,7 @@ module HammerCLI::Output
       end
 
       def tags
-        [:screen]
+        [:richtext_values]
       end
 
       def format(text, field_params={})
@@ -150,14 +151,29 @@ module HammerCLI::Output
       end
     end
 
+    # TODO:
+    # base - format
+    # table - format
+    # csv - cast to boolean
+    # yaml - cast to boolean
+    # json - cast to boolean
     class BooleanFormatter < FieldFormatter
-
       def tags
-        [:flat, :screen]
+        [:machine_readable]
       end
 
       def format(value, field_params={})
-        (value == 0 || !value || value == "") ? _("no") : _("yes")
+        !(value == 0 || value.nil? || value == "" || value == false)
+      end
+    end
+
+    class YesNoFormatter < BooleanFormatter
+      def tags
+        [:human_readable]
+      end
+
+      def format(value, field_params={})
+        super ? _("yes") : _("no")
       end
     end
 
@@ -165,7 +181,9 @@ module HammerCLI::Output
     HammerCLI::Output::Output.register_formatter(ListFormatter.new, :List)
     HammerCLI::Output::Output.register_formatter(KeyValueFormatter.new, :KeyValue)
     HammerCLI::Output::Output.register_formatter(LongTextFormatter.new, :LongText)
+
     HammerCLI::Output::Output.register_formatter(BooleanFormatter.new, :Boolean)
+    HammerCLI::Output::Output.register_formatter(YesNoFormatter.new, :Boolean)
 
   end
 end

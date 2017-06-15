@@ -17,25 +17,30 @@ module HammerCLI::Output::Adapter
     class Cell
       attr_accessor :field_wrapper, :data
 
-      def initialize(field_wrapper, data, formatters)
+      def initialize(field_wrapper, data, formatters, tags)
         @field_wrapper = field_wrapper
         @data = data
         @formatters = formatters
+        @tags = tags
       end
 
-      def self.create_cells(field_wrappers, data, formatters)
+      def self.create_cells(field_wrappers, data, formatters, tags)
         results = []
         field_wrappers.each do |field_wrapper|
           field = field_wrapper.field
           if field.is_a? Fields::Collection
-            results = results + expand_collection(field, data, formatters)
+            results = results + expand_collection(field, data, formatters, tags)
           elsif field.is_a?(Fields::ContainerField)
-            results = results + expand_container(field, data, formatters)
+            results = results + expand_container(field, data, formatters, tags)
           else
-            results << Cell.new(field_wrapper, data, formatters)
+            results << Cell.new(field_wrapper, data, formatters, tags)
           end
         end
         return results
+      end
+
+      def display?
+        @field_wrapper.field.display?(@data) && @field_wrapper.field.applicable?(@tags)
       end
 
       def formatted_value
@@ -62,7 +67,7 @@ module HammerCLI::Output::Adapter
 
       private
 
-      def self.expand_collection(field, data, formatters)
+      def self.expand_collection(field, data, formatters, tags)
         results = []
         collection_data = data_for_field(field, data) || []
         collection_data.each_with_index do |child_data, i|
@@ -70,16 +75,18 @@ module HammerCLI::Output::Adapter
             child_field_wrapper = FieldWrapper.new(child_field)
             child_field_wrapper.append_prefix(field.label)
             child_field_wrapper.append_suffix((i + 1).to_s)
-            results << Cell.new(child_field_wrapper, collection_data[i] || {}, formatters)
+            results << Cell.new(child_field_wrapper, collection_data[i] || {}, formatters, tags)
           end
         end
-        results
+        results.select do |field|
+          field.display?
+        end
       end
 
-      def self.expand_container(field, data, formatters)
+      def self.expand_container(field, data, formatters, tags)
         child_fields = FieldWrapper.wrap(field.fields)
         child_fields.each{ |child| child.append_prefix(field.label) }
-        create_cells(child_fields, data_for_field(field, data), formatters)
+        create_cells(child_fields, data_for_field(field, data), formatters, tags)
       end
 
       def self.data_for_field(field, data)
@@ -141,13 +148,19 @@ module HammerCLI::Output::Adapter
     end
 
     def tags
-      [:flat]
+      [ :plaintext_values,
+        :flat_values,
+        :flat, # legacy value, has the same meaning as :flat_values
+        :fixed_structure,
+        :machine_readable,
+        :csv  # specific tag for this provider
+      ]
     end
 
     def row_data(fields, collection)
       result = []
       collection.each do |data|
-        result << Cell.create_cells(FieldWrapper.wrap(fields), data, @formatters)
+        result << Cell.create_cells(FieldWrapper.wrap(fields), data, @formatters, tags)
       end
       result
     end

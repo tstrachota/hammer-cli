@@ -4,13 +4,15 @@ module Fields
 
   class Field
 
-    attr_reader :label
-    attr_reader :path
+    attr_accessor :label
+    attr_accessor :path
+    attr_accessor :adaptors
 
     def initialize(options={})
       @hide_blank = options[:hide_blank].nil? ? false : options[:hide_blank]
       @path = options[:path] || []
       @label = options[:label]
+      @adaptors = options[:adaptors]
       @options = options
     end
 
@@ -28,6 +30,10 @@ module Fields
       end
     end
 
+    def applicable?(adaptor_tags)
+      @adaptors.nil? || (@adaptors & adaptor_tags != [])
+    end
+
     def parameters
       @options
     end
@@ -39,10 +45,7 @@ module Fields
 
     def initialize(options={}, &block)
       super(options)
-      dsl = HammerCLI::Output::Dsl.new
-      dsl.build &block if block_given?
-
-      self.output_definition.append dsl.fields
+      add_fields(&block)
     end
 
     def output_definition
@@ -62,6 +65,13 @@ module Fields
       else
         true
       end
+    end
+
+    def add_fields(&block)
+      dsl = HammerCLI::Output::Dsl.new
+      dsl.build(&block) if block_given?
+
+      output_definition.append(dsl.fields)
     end
   end
 

@@ -5,7 +5,14 @@ module HammerCLI::Output::Adapter
     LABEL_DIVIDER = ": "
 
     def tags
-      [:flat, :screen]
+      [ :richtext_values,
+        :screen, # legacy value, has the same meaning as :richtext_values
+        :flat_values,
+        :flat, # legacy value, has the same meaning as :flat_values
+        :variable_structure,
+        :human_readable,
+        :base  # specific tag for this provider
+      ]
     end
 
     def print_record(fields, record)
@@ -30,7 +37,7 @@ module HammerCLI::Output::Adapter
     def filter_fields(fields, data)
       field_filter.filter(fields).reject do |field|
         field_data = data_for_field(field, data)
-        not field.display?(field_data)
+        !field.display?(field_data) || !field.applicable?(tags)
       end
     end
 
@@ -44,7 +51,6 @@ module HammerCLI::Output::Adapter
       fields.collect do |field|
         field_data = data_for_field(field, data)
 
-        next unless field.display?(field_data)
         output += render_field(field, field_data, label_width)
         output += "\n"
       end
@@ -87,7 +93,7 @@ module HammerCLI::Output::Adapter
       formatter = @formatters.formatter_for_type(field.class)
       parameters = field.parameters
       parameters[:context] = @context
-      data = formatter.format(data, field.parameters) if formatter
+      data = formatter.format(data, parameters) if formatter
       data.to_s
     end
 

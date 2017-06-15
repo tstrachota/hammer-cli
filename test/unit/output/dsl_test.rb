@@ -1,12 +1,8 @@
 require File.join(File.dirname(__FILE__), '../test_helper')
 
 
-class CustomFieldType
+class CustomFieldType < Fields::Field
   attr_reader :options
-
-  def initialize(options)
-    @options = options
-  end
 end
 
 describe HammerCLI::Output::Dsl do
@@ -38,7 +34,7 @@ describe HammerCLI::Output::Dsl do
     it "should store all field details" do
       dsl.build do
         field :f, "F"
-       end
+      end
 
       first_field.must_equal last_field
       first_field.path.must_equal [:f]
@@ -66,14 +62,6 @@ describe HammerCLI::Output::Dsl do
       end
       first_field.class.must_equal CustomFieldType
     end
-
-    it "passes all options to the field instance" do
-      dsl.build do
-        custom_field CustomFieldType, :a => 1, :b => 2
-      end
-      first_field.options.must_equal options
-    end
-
   end
 
   describe "path definition" do

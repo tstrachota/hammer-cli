@@ -56,13 +56,6 @@ describe HammerCLI::Output::Formatters::FormatterContainer do
   end
 end
 
-describe HammerCLI::Output::Formatters::ColorFormatter do
-  it "colorizes the value" do
-    formatter = HammerCLI::Output::Formatters::ColorFormatter.new(:red)
-    formatter.format('red').must_equal "\e[31mred\e[0m"
-  end
-end
-
 describe HammerCLI::Output::Formatters::DateFormatter do
   it "formats the date" do
     formatter = HammerCLI::Output::Formatters::DateFormatter.new
@@ -157,8 +150,25 @@ describe HammerCLI::Output::Formatters::LongTextFormatter do
 end
 
 describe HammerCLI::Output::Formatters::BooleanFormatter do
-
   let(:formatter) { HammerCLI::Output::Formatters::BooleanFormatter.new }
+
+  it "says yes for true like objects" do
+    formatter.format(true).must_equal true
+    formatter.format("yes").must_equal true
+    formatter.format("no").must_equal true
+    formatter.format(1).must_equal true
+  end
+
+  it "says no for false, nil, empty string and 0" do
+    formatter.format(nil).must_equal false
+    formatter.format(false).must_equal false
+    formatter.format("").must_equal false
+    formatter.format(0).must_equal false
+  end
+end
+
+describe HammerCLI::Output::Formatters::YesNoFormatter do
+  let(:formatter) { HammerCLI::Output::Formatters::YesNoFormatter.new }
 
   it "says yes for true like objects" do
     formatter.format(true).must_equal "yes"

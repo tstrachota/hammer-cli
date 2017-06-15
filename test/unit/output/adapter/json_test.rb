@@ -123,16 +123,14 @@ describe HammerCLI::Output::Adapter::Json do
       num_contacts.output_definition.append [desc, contact]
       fields = [num_contacts]
       hash = [{
-                'Contacts' => {
-                  1 => {
+                'Contacts' => [{
                     'Description' => 'personal email',
                     'Contact' => 'john.doe@doughnut.com'
-                  },
-                  2 => {
+                  }, {
                     'Description' => 'telephone',
                     'Contact' => '123456789'
                   }
-                }
+                ]
               }]
 
       expected_output = JSON.pretty_generate(hash) + "\n"
@@ -143,12 +141,12 @@ describe HammerCLI::Output::Adapter::Json do
       num_one_contact.output_definition.append [desc, contact]
       fields = [num_one_contact]
       hash = [{
-                'Contacts' => {
-                  1 => {
+                'Contacts' => [
+                  {
                     'Description' => 'personal email',
                     'Contact' => 'john.doe@doughnut.com'
                   }
-                }
+                ]
               }]
 
       expected_output = JSON.pretty_generate(hash) + "\n"
@@ -211,16 +209,14 @@ describe HammerCLI::Output::Adapter::Json do
       fields = [params_collection]
 
       hash = [{
-                'Parameters' => {
-                  1 => {
+                'Parameters' => [{
                     :name => 'weight',
                     :value => '83'
-                  },
-                  2 => {
+                  }, {
                     :name => 'size',
                     :value => '32'
                   }
-                }
+                ]
               }]
       expected_output = JSON.pretty_generate(hash) + "\n"
 
