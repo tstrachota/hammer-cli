@@ -236,7 +236,7 @@ module HammerCLI
       ])
     end
 
-    HammerCLI::Options::GlobalOptions.define_global_options(self)
+    HammerCLI::Options::GlobalOptions.define_global_options(self, true)
 
     private
 

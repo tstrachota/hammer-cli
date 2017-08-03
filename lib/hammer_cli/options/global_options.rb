@@ -3,36 +3,36 @@ require 'hammer_cli/options/normalizers'
 module HammerCLI
   module Options
     class GlobalOptions < Clamp::Command
-      def self.define_global_options(base)
-        base.option ["-v", "--verbose"], :flag, _("Be verbose")
-        base.option ["-d", "--debug"], :flag, _("Show debugging output")
-        base.option ["-r", "--reload-cache"], :flag, _("Force reload of Apipie cache")
+      def self.define_global_options(base, hidden=false)
+        base.option ["-v", "--verbose"], :flag, _("Be verbose"), :hidden => hidden
+        base.option ["-d", "--debug"], :flag, _("Show debugging output"), :hidden => hidden
+        base.option ["-r", "--reload-cache"], :flag, _("Force reload of Apipie cache"), :hidden => hidden
 
-        base.option ["-c", "--config"], "CFG_FILE", _("Path to custom config file")
+        base.option ["-c", "--config"], "CFG_FILE", _("Path to custom config file"), :hidden => hidden
 
-        base.option ["-u", "--username"], "USERNAME", _("Username to access the remote system")
-        base.option ["-p", "--password"], "PASSWORD", _("Password to access the remote system")
-        base.option ["-s", "--server"], "SERVER", _("Remote system address")
-        base.option ["--verify-ssl"], "VERIFY_SSL", _("Configure SSL verification of remote system") do |value|
+        base.option ["-u", "--username"], "USERNAME", _("Username to access the remote system"), :hidden => hidden
+        base.option ["-p", "--password"], "PASSWORD", _("Password to access the remote system"), :hidden => hidden
+        base.option ["-s", "--server"], "SERVER", _("Remote system address"), :hidden => hidden
+        base.option ["--verify-ssl"], "VERIFY_SSL", _("Configure SSL verification of remote system"), :hidden => hidden do |value|
           bool_normalizer = HammerCLI::Options::Normalizers::Bool.new
           bool_normalizer.format(value)
         end
-        base.option ["--ssl-ca-file"], "CA_FILE", _("Configure the file containing the CA certificates")
-        base.option ["--ssl-ca-path"], "CA_PATH", _("Configure the directory containing the CA certificates")
-        base.option ["--ssl-client-cert"], "CERT_FILE", _("Configure the client's public certificate")
-        base.option ["--ssl-client-key"], "KEY_FILE", _("Configure the client's private key")
-        base.option ["--ssl-with-basic-auth"], :flag, _("Use standard authentication in addition to client certificate authentication")
-        base.option ["--fetch-ca-cert"], "SERVER", _("Fetch CA certificate from server and exit")
+        base.option ["--ssl-ca-file"], "CA_FILE", _("Configure the file containing the CA certificates"), :hidden => hidden
+        base.option ["--ssl-ca-path"], "CA_PATH", _("Configure the directory containing the CA certificates"), :hidden => hidden
+        base.option ["--ssl-client-cert"], "CERT_FILE", _("Configure the client's public certificate"), :hidden => hidden
+        base.option ["--ssl-client-key"], "KEY_FILE", _("Configure the client's private key"), :hidden => hidden
+        base.option ["--ssl-with-basic-auth"], :flag, _("Use standard authentication in addition to client certificate authentication"), :hidden => hidden
+        base.option ["--fetch-ca-cert"], "SERVER", _("Fetch CA certificate from server and exit"), :hidden => hidden
 
-        base.option ["--show-ids"], :flag, _("Show ids of associated resources")
+        base.option ["--show-ids"], :flag, _("Show ids of associated resources"), :hidden => hidden
 
-        base.option ["--interactive"], "INTERACTIVE", _("Explicitly turn interactive mode on/off") do |value|
+        base.option ["--interactive"], "INTERACTIVE", _("Explicitly turn interactive mode on/off"), :hidden => hidden do |value|
           bool_normalizer = HammerCLI::Options::Normalizers::Bool.new
           bool_normalizer.format(value)
         end
-        base.option ["--csv"], :flag, _("Output as CSV (same as --output=csv)")
-        base.option ["--output"], "ADAPTER", _("Set output format. One of")
-        base.option ["--csv-separator"], "SEPARATOR", _("Character to separate the values")
+        base.option ["--csv"], :flag, _("Output as CSV (same as --output=csv)"), :hidden => hidden
+        base.option ["--output"], "ADAPTER", _("Set output format. One of"), :hidden => hidden
+        base.option ["--csv-separator"], "SEPARATOR", _("Character to separate the values"), :hidden => hidden
       end
 
       define_global_options(self)
