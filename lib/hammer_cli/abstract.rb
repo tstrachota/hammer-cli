@@ -213,16 +213,6 @@ module HammerCLI
       end
     end
 
-    def self.define_simple_writer_for(attribute, &block)
-      define_method(attribute.write_method) do |value|
-        value = instance_exec(value, &block) if block
-        if attribute.respond_to?(:context_target) && attribute.context_target
-          context[attribute.context_target] = value
-        end
-        attribute.of(self).set(value)
-      end
-    end
-
     def self.option(switches, type, description, opts = {}, &block)
       HammerCLI::Options::OptionDefinition.new(switches, type, description, opts).tap do |option|
         declared_options << option
@@ -245,6 +235,8 @@ module HammerCLI
         HammerCLI::Options::Sources::SavedDefaults.new(context[:defaults], logger)
       ])
     end
+
+    HammerCLI::Options::GlobalOptions.define_global_options(self)
 
     private
 

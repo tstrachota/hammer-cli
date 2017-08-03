@@ -8,46 +8,9 @@ HighLine.color_scheme = HighLine::SampleColorScheme.new
 # load i18n to get translations
 require 'hammer_cli/i18n'
 
-require 'hammer_cli/options/normalizers'
-# Create fake command instance to use some global args before we start.
-# Option descriptions are never displayed and thus do not require translation.
-class PreParser < Clamp::Command
-  option ["-v", "--verbose"], :flag, "be verbose"
-  option ["-d", "--debug"], :flag, "show debugging output"
-  option ["-c", "--config"], "CFG_FILE", "path to custom config file" do |path|
-    File.expand_path path
-  end
-  option ["-u", "--username"], "USERNAME", "username to access the remote system"
-  option ["-p", "--password"], "PASSWORD", "password to access the remote system"
-  option ["-s", "--server"], "SERVER", "remote system address"
-  option ["-r", "--reload-cache"], :flag, "force reload of Apipie cache"
-  option ["--interactive"], "INTERACTIVE", "Explicitly turn interactive mode on/off" do |value|
-    bool_normalizer = HammerCLI::Options::Normalizers::Bool.new
-    bool_normalizer.format(value)
-  end
-  option ["--version"], :flag, "show version"
-  option ["--show-ids"], :flag, "Show ids of associated resources"
-  option ["--csv"], :flag, "Output as CSV (same as --output=csv)"
-  option ["--output"], "ADAPTER", "Set output format"
-  option ["--csv-separator"], "SEPARATOR", "Character to separate the values"
-  option ["--autocomplete"], "LINE", "Get list of possible endings"
-  option ["--verify-ssl"], "VERIFY_SSL", "Configure SSL verification of remote system" do |value|
-    bool_normalizer = HammerCLI::Options::Normalizers::Bool.new
-    bool_normalizer.format(value)
-  end
-  option ["--ssl-ca-file"], "CA_FILE", "Configure the file containing the CA certificates"
-  option ["--ssl-ca-path"], "CA_PATH", "Configure the directory containing the CA certificates"
-  option ["--ssl-client-cert"], "CERT_FILE", "Configure the client's public certificate"
-  option ["--ssl-client-key"], "KEY_FILE", "Configure the client's private key"
-  option ["--ssl-with-basic-auth"], :flag, "Use standard authentication in addition to client certificate authentication"
-  option ["--fetch-ca-cert"], "SERVER", "Fetch CA certificate from server and exit"
-end
-
-preparser = PreParser.new File.basename($0), {}
-begin
-  preparser.parse ARGV
-rescue
-end
+# pre-parse global options
+require 'hammer_cli/options/global_options'
+preparser = HammerCLI::Options::GlobalOptions.parser
 
 # load user's settings
 require 'hammer_cli/settings'
@@ -80,20 +43,8 @@ end
 
 # store username and password in settings
 HammerCLI::Settings.load({
-  :_params => {
-    :username => preparser.username,
-    :password => preparser.password,
-    :host => preparser.server,
-    :interactive => preparser.interactive,
-    :verbose => preparser.verbose? || preparser.debug?,
-    :reload_cache => preparser.reload_cache?,
-    :verify_ssl => preparser.verify_ssl,
-    :ssl_ca_file => preparser.ssl_ca_file,
-    :ssl_ca_path => preparser.ssl_ca_path,
-    :ssl_client_cert => preparser.ssl_client_cert,
-    :ssl_client_key => preparser.ssl_client_key,
-    :ssl_with_basic_auth => preparser.ssl_with_basic_auth?
-  }})
+  :_params => preparser.setting_params
+})
 
 if HammerCLI::Settings.get(:ui, :mark_translated)
   include HammerCLI::I18n::Debug
@@ -144,4 +95,5 @@ HammerCLI::I18n.domains.each do |domain|
   logger.debug "'#{domain.type}' files for locale domain '#{domain.domain_name}' loaded from '#{File.expand_path(domain.locale_dir)}'"
 end
 
+preparser.init_context(HammerCLI.context)
 exit HammerCLI::MainCommand.run(File.basename($0), ARGV, HammerCLI.context) || HammerCLI::EX_OK
