@@ -80,9 +80,12 @@ module HammerCLI
     def self.help(invocation_path, builder = HammerCLI::Help::Builder.new)
       super(invocation_path, builder)
 
-      if @help_extension_block
+      if @help_extension_block || !command_extensions.empty?
         help_extension = HammerCLI::Help::TextBuilder.new(builder.richtext)
-        @help_extension_block.call(help_extension)
+        @help_extension_block.call(help_extension) if @help_extension_block
+        command_extensions.each do |e|
+          e.help(help_extension)
+        end
         builder.add_text(help_extension.string)
       end
       builder.string
@@ -105,7 +108,15 @@ module HammerCLI
     end
 
     def output_definition
-      self.class.output_definition
+      if @output_definition.nil?
+        @output_definition = self.class.output_definition
+        dsl = HammerCLI::Output::Dsl.new
+        self.class.command_extensions.each do |e|
+          e.output(dsl)
+        end
+        @output_definition.append(dsl.fields)
+      end
+      @output_definition
     end
 
 
@@ -137,7 +148,19 @@ module HammerCLI
       end
     end
 
+    def self.extend_command(extension)
+      command_extensions << extension
+    end
+
+    def self.remove_extensions
+      command_extensions = []
+    end
+
     protected
+
+    def self.command_extensions
+      @extensions ||= []
+    end
 
     def self.find_options(switch_filter, other_filters={})
       filters = other_filters
