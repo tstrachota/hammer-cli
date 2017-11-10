@@ -5,12 +5,8 @@ module HammerCLI::Output::Adapter
     LABEL_DIVIDER = ": "
 
     def tags
-      [ :richtext_values,
-        :screen, # legacy value, has the same meaning as :richtext_values
-        :flat_values,
+      [ :screen, # legacy value, has the same meaning as :richtext_values
         :flat, # legacy value, has the same meaning as :flat_values
-        :variable_structure,
-        :human_readable,
         :base  # specific tag for this provider
       ]
     end

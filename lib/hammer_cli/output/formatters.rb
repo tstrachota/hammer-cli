@@ -64,9 +64,15 @@ module HammerCLI::Output
 
     end
 
+    # TODO:
+    # base - format
+    # table - format
+    # csv - format
+    # yaml - return plain
+    # json - return plain
     class DateFormatter < FieldFormatter
       def tags
-        [:human_readable]
+        [:base, :table, :csv]
       end
 
       def format(string_date, field_params={})
@@ -87,7 +93,7 @@ module HammerCLI::Output
       INDENT = "  "
 
       def tags
-        [:flat_values]
+        [:base, :table, :csv]
       end
 
       def format(list, field_params={})
@@ -114,7 +120,7 @@ module HammerCLI::Output
     # json - return hash
     class KeyValueFormatter < FieldFormatter
       def tags
-        [:human_readable]
+        [:base, :table, :csv]
       end
 
       def format(params, field_params={})
@@ -142,7 +148,7 @@ module HammerCLI::Output
       end
 
       def tags
-        [:richtext_values]
+        [:base, :table]
       end
 
       def format(text, field_params={})
@@ -159,7 +165,7 @@ module HammerCLI::Output
     # json - cast to boolean
     class BooleanFormatter < FieldFormatter
       def tags
-        [:machine_readable]
+        [:base, :table]
       end
 
       def format(value, field_params={})
@@ -169,7 +175,7 @@ module HammerCLI::Output
 
     class YesNoFormatter < BooleanFormatter
       def tags
-        [:human_readable]
+        [:csv, :yaml]
       end
 
       def format(value, field_params={})
@@ -177,7 +183,7 @@ module HammerCLI::Output
       end
     end
 
-    HammerCLI::Output::Output.register_formatter(DateFormatter.new, :Date)
+    HammerCLI::Output::Output.register_formatter(DateFormatter.new, :Date, :adaptors => [:base, :table, :csv])
     HammerCLI::Output::Output.register_formatter(ListFormatter.new, :List)
     HammerCLI::Output::Output.register_formatter(KeyValueFormatter.new, :KeyValue)
     HammerCLI::Output::Output.register_formatter(LongTextFormatter.new, :LongText)

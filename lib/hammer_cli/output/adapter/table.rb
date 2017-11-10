@@ -13,12 +13,8 @@ module HammerCLI::Output::Adapter
     COLUMN_SEPARATOR = ' | '
 
     def tags
-      [ :richtext_values,
-        :screen, # legacy value, has the same meaning as :richtext_values
-        :flat_values,
+      [ :screen, # legacy value, has the same meaning as :richtext_values
         :flat, # legacy value, has the same meaning as :flat_values
-        :fixed_structure,
-        :human_readable,
         :table  # specific tag for this provider
       ]
     end

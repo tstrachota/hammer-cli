@@ -1,12 +1,4 @@
 require 'csv'
-if CSV.const_defined? :Reader
-  # Ruby 1.8 compatible
-  require 'fastercsv'
-  Object.send(:remove_const, :CSV)
-  CSV = FasterCSV
-else
-  # CSV is now FasterCSV in ruby 1.9
-end
 
 require File.join(File.dirname(__FILE__), 'wrapper_formatter')
 
@@ -148,11 +140,7 @@ module HammerCLI::Output::Adapter
     end
 
     def tags
-      [ :plaintext_values,
-        :flat_values,
-        :flat, # legacy value, has the same meaning as :flat_values
-        :fixed_structure,
-        :machine_readable,
+      [ :flat, # legacy value, has the same meaning as :flat_values
         :csv  # specific tag for this provider
       ]
     end

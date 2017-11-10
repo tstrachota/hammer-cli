@@ -2,11 +2,7 @@ module HammerCLI::Output::Adapter
   class Json < TreeStructure
 
     def tags
-      [ :plaintext_values,
-        :structured_values,
-        :data, # legacy value, has the same meaning as :structured_values
-        :variable_structure,
-        :machine_readable,
+      [ :data, # legacy value, has the same meaning as :structured_values
         :json  # specific tag for this provider
       ]
     end
