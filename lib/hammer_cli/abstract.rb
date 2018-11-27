@@ -58,6 +58,7 @@ module HammerCLI
     end
 
     def validate_options
+      # keep the method for legacy reasons
       if self.class.validation_blocks && self.class.validation_blocks.any?
         self.class.validation_blocks.each { |validation_block| validator.run(&validation_block) }
       end
@@ -198,6 +199,7 @@ module HammerCLI
     end
 
     def validator
+      # keep the method for legacy reasons, it's used by validate_options
       @validator ||= HammerCLI::Validator.new(self.class.recognised_options, all_options)
     end
 

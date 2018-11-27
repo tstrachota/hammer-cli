@@ -10,7 +10,12 @@ module HammerCLI
 
       def all_options_raw
         @all_options_raw ||= @option_sources.inject({}) do |all_options, source|
-          source.get_options(@recognised_options, all_options)
+          if source.respond_to?(:get_options)
+            source.get_options(@recognised_options, all_options)
+          else
+            source.run(@recognised_options, all_options)
+            all_options
+          end
         end
       end
 
@@ -21,13 +26,13 @@ module HammerCLI
       def options
         @options ||= all_options.reject { |key, value| value.nil? && all_options_raw[key].nil? }
       end
-      
+
       private
-      
+
       def translate_nils(opts)
         Hash[ opts.map { |k,v| [k, translate_nil(v)] } ]
       end
-      
+
       def translate_nil(value)
         value == HammerCLI::NilValue ? nil : value
       end
