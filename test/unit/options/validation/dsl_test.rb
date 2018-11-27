@@ -1,4 +1,5 @@
-require File.join(File.dirname(__FILE__), 'test_helper')
+require 'hammer_cli/options/validation/dsl_block_validator'
+require_relative '../../test_helper'
 
 describe "constraints" do
   let(:option_values) {{
@@ -14,9 +15,9 @@ describe "constraints" do
     option_names.collect{ |n| Clamp::Option::Definition.new(["-"+n, "--option-"+n], n.upcase, "Option "+n.upcase) }
   }
 
-  describe HammerCLI::Validator::BaseConstraint do
+  describe HammerCLI::Options::Validation::DSL::BaseConstraint do
 
-    let(:cls) { HammerCLI::Validator::BaseConstraint }
+    let(:cls) { HammerCLI::Options::Validation::DSL::BaseConstraint }
 
     describe "exist?" do
       it "throws not implemented error" do
@@ -75,9 +76,9 @@ describe "constraints" do
 
   end
 
-  describe HammerCLI::Validator::AllConstraint do
+  describe HammerCLI::Options::Validation::DSL::AllConstraint do
 
-    let(:cls) { HammerCLI::Validator::AllConstraint }
+    let(:cls) { HammerCLI::Options::Validation::DSL::AllConstraint }
 
     describe "exist?" do
 
@@ -99,8 +100,8 @@ describe "constraints" do
 
   end
 
-  describe HammerCLI::Validator::OneOptionConstraint do
-    let(:cls) { HammerCLI::Validator::OneOptionConstraint }
+  describe HammerCLI::Options::Validation::DSL::OneOptionConstraint do
+    let(:cls) { HammerCLI::Options::Validation::DSL::OneOptionConstraint }
 
     describe "exist?" do
       it "should return true when the option exist" do
@@ -153,9 +154,9 @@ describe "constraints" do
     end
   end
 
-  describe HammerCLI::Validator::AnyConstraint do
+  describe HammerCLI::Options::Validation::DSL::AnyConstraint do
 
-    let(:cls) { HammerCLI::Validator::AnyConstraint }
+    let(:cls) { HammerCLI::Options::Validation::DSL::AnyConstraint }
 
     describe "exist?" do
 
@@ -177,9 +178,9 @@ describe "constraints" do
 
   end
 
-  describe HammerCLI::Validator::OneOfConstraint do
+  describe HammerCLI::Options::Validation::DSL::OneOfConstraint do
 
-    let(:cls) { HammerCLI::Validator::OneOfConstraint }
+    let(:cls) { HammerCLI::Options::Validation::DSL::OneOfConstraint }
 
     it "raises exception when nothing to check is set" do
       e = proc{ cls.new(options, option_values, []) }.must_raise RuntimeError

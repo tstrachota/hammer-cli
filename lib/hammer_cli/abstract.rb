@@ -198,7 +198,7 @@ module HammerCLI
 
     def validator
       # keep the method for legacy reasons, it's used by validate_options
-      @validator ||= HammerCLI::Validator.new(self.class.recognised_options, all_options)
+      @validator ||= HammerCLI::Options::Validation::DSL.new(self.class.recognised_options, all_options)
     end
 
     def handle_exception(e)
