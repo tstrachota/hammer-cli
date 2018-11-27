@@ -3,9 +3,6 @@ module HammerCLI
 
   class Validator
 
-    class ValidationError < StandardError
-    end
-
     class BaseConstraint
 
       attr_reader :rejected_msg, :required_msg
@@ -23,12 +20,12 @@ module HammerCLI
 
       def rejected(args={})
         msg = args[:msg] || rejected_msg % option_switches.join(", ")
-        raise ValidationError.new(msg) if exist?
+        raise HammerCLI::Options::Validation::ValidationError.new(msg) if exist?
       end
 
       def required(args={})
         msg = args[:msg] || required_msg % option_switches.join(", ")
-        raise ValidationError.new(msg) unless exist?
+        raise HammerCLI::Options::Validation::ValidationError.new(msg) unless exist?
       end
 
       def exist?

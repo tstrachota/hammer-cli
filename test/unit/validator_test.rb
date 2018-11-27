@@ -29,7 +29,7 @@ describe "constraints" do
       it "should raise exception when exist? returns true" do
         constraint = cls.new(options, option_values, [])
         constraint.stubs(:exist?).returns(true)
-        proc{ constraint.rejected }.must_raise HammerCLI::Validator::ValidationError
+        proc{ constraint.rejected }.must_raise HammerCLI::Options::Validation::ValidationError
       end
 
       it "should raise exception with a message" do
@@ -37,7 +37,7 @@ describe "constraints" do
         constraint.stubs(:exist?).returns(true)
         begin
           constraint.rejected :msg => "CUSTOM MESSAGE"
-        rescue HammerCLI::Validator::ValidationError => e
+        rescue HammerCLI::Options::Validation::ValidationError => e
           e.message.must_equal "CUSTOM MESSAGE"
         end
       end
@@ -53,7 +53,7 @@ describe "constraints" do
       it "should raise exception when exist? returns true" do
         constraint = cls.new(options, option_values, [])
         constraint.stubs(:exist?).returns(false)
-        proc{ constraint.required }.must_raise HammerCLI::Validator::ValidationError
+        proc{ constraint.required }.must_raise HammerCLI::Options::Validation::ValidationError
       end
 
       it "should raise exception with a message" do
@@ -61,7 +61,7 @@ describe "constraints" do
         constraint.stubs(:exist?).returns(false)
         begin
           constraint.rejected :msg => "CUSTOM MESSAGE"
-        rescue HammerCLI::Validator::ValidationError => e
+        rescue HammerCLI::Options::Validation::ValidationError => e
           e.message.must_equal "CUSTOM MESSAGE"
         end
       end
@@ -122,7 +122,7 @@ describe "constraints" do
 
       it "raises exception when the option is present" do
         constraint = cls.new(options, option_values, :option_a)
-        e = proc{ constraint.rejected }.must_raise HammerCLI::Validator::ValidationError
+        e = proc{ constraint.rejected }.must_raise HammerCLI::Options::Validation::ValidationError
         e.message.must_equal "You can't set option --option-a."
       end
     end
@@ -135,7 +135,7 @@ describe "constraints" do
 
       it "raises exception when the option is present" do
         constraint = cls.new(options, option_values, :option_unset_d)
-        e = proc{ constraint.required }.must_raise HammerCLI::Validator::ValidationError
+        e = proc{ constraint.required }.must_raise HammerCLI::Options::Validation::ValidationError
         e.message.must_equal 'Option --option-unset-d is required.'
       end
     end
@@ -219,13 +219,13 @@ describe "constraints" do
 
       it "raises exception when none of the options is present" do
         constraint = cls.new(options, option_values, [:option_unset_d, :option_unset_e])
-        e = proc{ constraint.required }.must_raise HammerCLI::Validator::ValidationError
+        e = proc{ constraint.required }.must_raise HammerCLI::Options::Validation::ValidationError
         e.message.must_equal 'One of options --option-unset-d, --option-unset-e is required.'
       end
 
       it "raises exception when more than one of the options is present" do
         constraint = cls.new(options, option_values, [:option_a, :option_b])
-        e = proc{ constraint.required }.must_raise HammerCLI::Validator::ValidationError
+        e = proc{ constraint.required }.must_raise HammerCLI::Options::Validation::ValidationError
         e.message.must_equal 'Only one of options --option-a, --option-b can be set.'
       end
     end

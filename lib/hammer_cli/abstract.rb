@@ -4,6 +4,7 @@ require 'hammer_cli/options/option_definition'
 require 'hammer_cli/options/option_collector'
 require 'hammer_cli/options/sources/command_line'
 require 'hammer_cli/options/sources/saved_defaults'
+require 'hammer_cli/options/validation/dsl_block_validator'
 require 'hammer_cli/clamp'
 require 'hammer_cli/subcommand'
 require 'hammer_cli/options/matcher'
@@ -44,7 +45,7 @@ module HammerCLI
       super
       validate_options
       logger.info "Called with options: %s" % options.inspect
-    rescue HammerCLI::Validator::ValidationError => e
+    rescue HammerCLI::Options::Validation::ValidationError => e
       signal_usage_error e.message
     end
 
@@ -59,9 +60,6 @@ module HammerCLI
 
     def validate_options
       # keep the method for legacy reasons
-      if self.class.validation_blocks && self.class.validation_blocks.any?
-        self.class.validation_blocks.each { |validation_block| validator.run(&validation_block) }
-      end
     end
 
     def exception_handler
@@ -264,7 +262,13 @@ module HammerCLI
 
 
     def option_sources
-      sources = [HammerCLI::Options::Sources::CommandLine.new(self)]
+      sources = []
+      sources << HammerCLI::Options::Sources::CommandLine.new(self)
+      if self.class.validation_blocks
+        self.class.validation_blocks.each do |validation_block|
+          sources << HammerCLI::Options::Validation::DSLBlockValidator.new(&validation_block)
+        end
+      end
       sources << HammerCLI::Options::Sources::SavedDefaults.new(context[:defaults], logger) if context[:use_defaults]
       sources
     end
