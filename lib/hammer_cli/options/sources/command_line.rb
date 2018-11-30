@@ -1,7 +1,9 @@
+require_relative './abstract'
+
 module HammerCLI
   module Options
     module Sources
-      class CommandLine
+      class CommandLine < Abstract
         def initialize(command)
           @command = command
         end

@@ -2,6 +2,7 @@ require 'hammer_cli/exception_handler'
 require 'hammer_cli/logger_watch'
 require 'hammer_cli/options/option_definition'
 require 'hammer_cli/options/option_collector'
+require 'hammer_cli/options/sources_list'
 require 'hammer_cli/options/sources/command_line'
 require 'hammer_cli/options/sources/saved_defaults'
 require 'hammer_cli/options/validation/dsl_block_validator'
@@ -11,6 +12,7 @@ require 'hammer_cli/options/matcher'
 require 'hammer_cli/help/builder'
 require 'hammer_cli/help/text_builder'
 require 'logging'
+
 module HammerCLI
 
   class AbstractCommand < Clamp::Command
@@ -53,9 +55,10 @@ module HammerCLI
       HammerCLI::EX_OK
     end
 
-    def self.validate_options(&block)
+    def self.validate_options(mode=:append, target_name=nil, validator: nil, &block)
+      validator ||= HammerCLI::Options::Validation::DSLBlockValidator.new(&block)
       self.validation_blocks ||= []
-      self.validation_blocks << block
+      self.validation_blocks << [mode, target_name, validator]
     end
 
     def validate_options
@@ -257,19 +260,25 @@ module HammerCLI
     end
 
     def option_collector
-      @option_collector ||= HammerCLI::Options::OptionCollector.new(self.class.recognised_options, option_sources)
+      @option_collector ||= HammerCLI::Options::OptionCollector.new(self.class.recognised_options, option_sources_with_validators)
     end
 
 
     def option_sources
-      sources = []
+      sources = HammerCLI::Options::SourcesList.new
       sources << HammerCLI::Options::Sources::CommandLine.new(self)
+      sources << HammerCLI::Options::Sources::SavedDefaults.new(context[:defaults], logger) if context[:use_defaults]
+      sources
+    end
+
+    def option_sources_with_validators
+      sources = option_sources
+
       if self.class.validation_blocks
         self.class.validation_blocks.each do |validation_block|
-          sources << HammerCLI::Options::Validation::DSLBlockValidator.new(&validation_block)
+          sources.insert_relative(*validation_block)
         end
       end
-      sources << HammerCLI::Options::Sources::SavedDefaults.new(context[:defaults], logger) if context[:use_defaults]
       sources
     end
 
