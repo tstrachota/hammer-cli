@@ -2,8 +2,12 @@ module HammerCLI
   module Options
     module Sources
       class Abstract
+        def initialize(name: nil)
+          @name = name
+        end
+
         def name
-          self.class.name.split('::')[-1]
+          @name || self.class.name.split('::')[-1]
         end
 
         def get_options(defined_options, result)

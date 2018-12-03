@@ -260,20 +260,19 @@ module HammerCLI
     end
 
     def option_collector
-      @option_collector ||= HammerCLI::Options::OptionCollector.new(self.class.recognised_options, option_sources_with_validators)
+      @option_collector ||= HammerCLI::Options::OptionCollector.new(self.class.recognised_options, add_validators(option_sources))
     end
 
 
     def option_sources
-      sources = HammerCLI::Options::SourcesList.new
+      sources = HammerCLI::Options::SourcesList.new(name: 'DefaultInputs')
       sources << HammerCLI::Options::Sources::CommandLine.new(self)
       sources << HammerCLI::Options::Sources::SavedDefaults.new(context[:defaults], logger) if context[:use_defaults]
-      sources
+
+      HammerCLI::Options::SourcesList.new([sources])
     end
 
-    def option_sources_with_validators
-      sources = option_sources
-
+    def add_validators(sources)
       if self.class.validation_blocks
         self.class.validation_blocks.each do |validation_block|
           sources.insert_relative(*validation_block)

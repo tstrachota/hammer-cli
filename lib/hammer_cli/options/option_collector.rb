@@ -1,22 +1,20 @@
 module HammerCLI
   module Options
     class OptionCollector
-      attr_accessor :option_sources
+      attr_accessor :option_source
 
-      def initialize(recognised_options, option_sources)
+      def initialize(recognised_options, option_source)
         @recognised_options = recognised_options
-        @option_sources = option_sources
+
+        if !option_source.is_a?(HammerCLI::Options::SourcesList)
+          @option_source = HammerCLI::Options::SourcesList.new(option_source)
+        else
+          @option_source = option_source
+        end
       end
 
       def all_options_raw
-        @all_options_raw ||= @option_sources.inject({}) do |all_options, source|
-          if source.respond_to?(:get_options)
-            source.get_options(@recognised_options, all_options)
-          else
-            source.run(@recognised_options, all_options)
-            all_options
-          end
-        end
+        @all_options_raw ||= @option_source.get_options(@recognised_options, {})
       end
 
       def all_options
