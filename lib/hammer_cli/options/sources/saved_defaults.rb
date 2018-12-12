@@ -1,9 +1,9 @@
-require_relative './abstract'
+require_relative './base'
 
 module HammerCLI
   module Options
     module Sources
-      class SavedDefaults < Abstract
+      class SavedDefaults < Base
         def initialize(defaults, logger)
           @defaults = defaults
           @logger = logger

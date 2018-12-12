@@ -7,10 +7,10 @@ describe HammerCLI::Options::OptionCollector do
     @source2_result = @source1_result.merge({:option3 => 3})
 
     @source1 = mock('Source1')
-    @source1.expects(:get_options).with(@recognised_options, {}).returns(@source1_result)
+    @source1.expects(:process).with(@recognised_options, {}).returns(@source1_result)
 
     @source2 = mock('Source2')
-    @source2.expects(:get_options).with(@recognised_options, @source1_result).returns(@source2_result)
+    @source2.expects(:process).with(@recognised_options, @source1_result).returns(@source2_result)
 
     @collector = HammerCLI::Options::OptionCollector.new(@recognised_options, [@source1, @source2])
   end
@@ -34,7 +34,7 @@ describe HammerCLI::Options::OptionCollector do
 
     it 'can process validations' do
       validator = mock('Validator')
-      validator.expects(:run).with(@recognised_options, @source1_result).returns(nil)
+      validator.expects(:process).with(@recognised_options, @source1_result).returns(@source1_result)
 
       collector = HammerCLI::Options::OptionCollector.new(@recognised_options, [@source1, validator, @source2])
 

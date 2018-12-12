@@ -2,10 +2,10 @@ require 'hammer_cli/exception_handler'
 require 'hammer_cli/logger_watch'
 require 'hammer_cli/options/option_definition'
 require 'hammer_cli/options/option_collector'
-require 'hammer_cli/options/sources_list'
+require 'hammer_cli/options/processor_list'
 require 'hammer_cli/options/sources/command_line'
 require 'hammer_cli/options/sources/saved_defaults'
-require 'hammer_cli/options/validation/dsl_block_validator'
+require 'hammer_cli/options/validators/dsl_block_validator'
 require 'hammer_cli/clamp'
 require 'hammer_cli/subcommand'
 require 'hammer_cli/options/matcher'
@@ -47,7 +47,7 @@ module HammerCLI
       super
       validate_options
       logger.info "Called with options: %s" % options.inspect
-    rescue HammerCLI::Options::Validation::ValidationError => e
+    rescue HammerCLI::Options::Validators::ValidationError => e
       signal_usage_error e.message
     end
 
@@ -56,7 +56,7 @@ module HammerCLI
     end
 
     def self.validate_options(mode=:append, target_name=nil, validator: nil, &block)
-      validator ||= HammerCLI::Options::Validation::DSLBlockValidator.new(&block)
+      validator ||= HammerCLI::Options::Validators::DSLBlockValidator.new(&block)
       self.validation_blocks ||= []
       self.validation_blocks << [mode, target_name, validator]
     end
@@ -201,7 +201,7 @@ module HammerCLI
 
     def validator
       # keep the method for legacy reasons, it's used by validate_options
-      @validator ||= HammerCLI::Options::Validation::DSL.new(self.class.recognised_options, all_options)
+      @validator ||= HammerCLI::Options::Validators::DSL.new(self.class.recognised_options, all_options)
     end
 
     def handle_exception(e)
@@ -265,11 +265,11 @@ module HammerCLI
 
 
     def option_sources
-      sources = HammerCLI::Options::SourcesList.new(name: 'DefaultInputs')
+      sources = HammerCLI::Options::ProcessorList.new(name: 'DefaultInputs')
       sources << HammerCLI::Options::Sources::CommandLine.new(self)
       sources << HammerCLI::Options::Sources::SavedDefaults.new(context[:defaults], logger) if context[:use_defaults]
 
-      HammerCLI::Options::SourcesList.new([sources])
+      HammerCLI::Options::ProcessorList.new([sources])
     end
 
     def add_validators(sources)

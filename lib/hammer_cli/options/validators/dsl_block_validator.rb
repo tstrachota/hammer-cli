@@ -1,10 +1,10 @@
-require_relative './base_validator'
+require_relative './base'
 require_relative './dsl'
 
 module HammerCLI
   module Options
-    module Validation
-      class DSLBlockValidator < BaseValidator
+    module Validators
+      class DSLBlockValidator < Base
         def initialize(&block)
           @validation_block = block
         end
