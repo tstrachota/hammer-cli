@@ -97,7 +97,7 @@ module HammerCLI
     result
   end
 
-  def self.insert_relative(array, mode, idx=nil, *new_items)
+  def self.insert_relative(array, mode, idx, *new_items)
     case mode
     when :prepend
       idx = 0
