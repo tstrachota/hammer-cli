@@ -425,14 +425,38 @@ describe HammerCLI::AbstractCommand do
     CmdOD2.output_definition.fields.length.must_equal 1
   end
 
-  it "should allow for multiple validation blocks" do
-    class CmdName1 < HammerCLI::AbstractCommand
-      validate_options do; end
-      validate_options do; end
+  describe 'validate_options' do
+    it "adds a validation block" do
+      cmd = Class.new(HammerCLI::AbstractCommand)
+      cmd.validate_options do; end
+
+      mode, target, validator = cmd.validation_blocks[0]
+
+      assert_equal :append, mode
+      assert_nil target
+      assert validator.is_a?(HammerCLI::Options::Validators::DSLBlockValidator)
     end
 
-    assert_equal 2, CmdName1.validation_blocks.length
-  end
+    it "allows for multiple validation blocks" do
+      cmd = Class.new(HammerCLI::AbstractCommand)
+      cmd.validate_options do; end
+      cmd.validate_options do; end
 
+      assert_equal 2, cmd.validation_blocks.length
+    end
+
+    it "allows relative inserts of custom validators" do
+      custom_validator = mock('Validator')
+
+      cmd = Class.new(HammerCLI::AbstractCommand)
+      cmd.validate_options(:before, 'DefaultInputs', validator: custom_validator)
+
+      mode, target, validator = cmd.validation_blocks[0]
+
+      assert_equal :before, mode
+      assert_equal 'DefaultInputs', target
+      assert validator, custom_validator
+    end
+  end
 end
 
