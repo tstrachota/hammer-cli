@@ -240,6 +240,16 @@ Abstract Hammer command uses two default option sources -
 `HammerCLI::Options::Sources::CommandLine` responsible for intial population of the options and
 `HammerCLI::Options::Sources::SavedDefaults` adding defaults managed by the `defaults` command.
 
+The default option sources are wrapped in `DefaultInputs` processor list so that it's possible to easily place
+custom sources before or behind all the default ones.
+The full default hierarchy is:
+
+```
+- DefaultInputs
+    - CommandLine
+    - SavedDefaults (present only when defaults are enabled)
+```
+
 By overriding `option_sources` method in a command it is possible to add custom option sources
 for various tasks to the list. The option sources are evaluated one by one each being given output
 of the previous one as its input so the order in which the sources are listed matters.

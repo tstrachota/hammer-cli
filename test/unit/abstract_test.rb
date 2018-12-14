@@ -458,5 +458,47 @@ describe HammerCLI::AbstractCommand do
       assert validator, custom_validator
     end
   end
+
+  describe 'add_validators' do
+    it 'is called upon the option_collector initialization' do
+      cmd = Class.new(HammerCLI::AbstractCommand)
+
+      cmd_instance = cmd.new('', {})
+      cmd_instance.expects(:add_validators).with do |sources|
+        sources.map(&:name) == ['DefaultInputs']
+      end
+      cmd_instance.send(:option_collector)
+    end
+
+    it 'inserts validators' do
+      validator1 = stub('Validator1', :name => 'Validator1')
+      validator2 = stub('Validator2', :name => 'Validator2')
+      sources = HammerCLI::Options::ProcessorList.new([
+        stub('Source1', :name => 'Source1'),
+        stub('Source2', :name => 'Source2')
+      ])
+
+      cmd = Class.new(HammerCLI::AbstractCommand)
+      cmd.validate_options(:after, 'Source1', validator: validator1)
+      cmd.validate_options(validator: validator2)
+
+      cmd_instance = cmd.new('', {})
+      result = cmd_instance.send(:add_validators, sources)
+      assert_equal ['Source1', 'Validator1', 'Source2', 'Validator2'], result.map(&:name)
+    end
+
+    it 'allows for creating inheritable validators' do
+      cmd = Class.new(HammerCLI::AbstractCommand)
+      cmd.send(:define_method, :add_validators) do |sources|
+        [ stub('Validator1', :name => 'Validator1') ]
+      end
+
+      sub_cmd = Class.new(cmd)
+
+      cmd_instance = sub_cmd.new('', {})
+      result = cmd_instance.send(:option_collector).option_processor
+      assert_equal ['Validator1'], result.map(&:name)
+    end
+  end
 end
 
